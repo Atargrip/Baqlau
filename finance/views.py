@@ -1,60 +1,97 @@
 from django.shortcuts import render, redirect
 from django.core.files.storage import FileSystemStorage
-from .models import Transaction, ReceiptItem
-from .ai_service import parse_finance_document
-import mimetypes
+from django.http import HttpResponse  # Для экспорта
+import csv  # Для экспорта
+from datetime import datetime  # Для конвертации даты
+from django.views.decorators.http import require_POST
+from .models import Transaction
+from .ai_service import extract_finance_data
 
 
 def dashboard(request):
-    # Получаем все транзакции из БД, от новых к старым
     transactions = Transaction.objects.all().order_by('-date', '-created_at')
 
+    # Считаем баланс для красоты
+    income = sum(t.amount for t in transactions if t.transaction_type == 'income')
+    expense = sum(t.amount for t in transactions if t.transaction_type == 'expense')
+    balance = income - expense
+
     context = {
-        'transactions': transactions
+        'transactions': transactions,
+        'balance': balance,
+        'income': income,
+        'expense': expense
     }
-    return render(request, 'dashboard.html', context)
-
-
+    return render(request, 'finance/dashboard.html', context)
 
 
 def upload_file(request):
-    if request.method == 'POST' and request.FILES['document']:
+    if request.method == 'POST' and request.FILES.get('document'):
         uploaded_file = request.FILES['document']
 
-        # 1. Сначала сохраняем файл физически через модель (временный объект)
-        # Но проще сначала сохранить файл, чтобы получить путь для AI
+        # 1. Сохраняем файл временно
         fs = FileSystemStorage()
         filename = fs.save(uploaded_file.name, uploaded_file)
         file_path = fs.path(filename)
-        file_url = fs.url(filename)
 
-        # Определяем MIME тип (pdf или image)
-        mime_type, _ = mimetypes.guess_type(file_path)
-        if not mime_type:
-            mime_type = "application/pdf"  # fallback
+        # 2. Парсим
+        data = extract_finance_data(file_path)
 
-        ai_data = parse_finance_document(file_path, mime_type)
+        # 3. Обрабатываем результат
+        if isinstance(data, list):
+            for item in data:
+                # Конвертируем дату из строки "DD.MM.YYYY" в формат Python Date
+                try:
+                    date_obj = datetime.strptime(item['date'], "%d.%m.%Y").date()
+                except ValueError:
+                    date_obj = None  # Или ставим сегодня
 
-        if ai_data:
-            new_trans = Transaction.objects.create(
-                date=ai_data.get('date'),
-                merchant=ai_data.get('merchant', 'Unknown'),
-                amount=ai_data.get('total_amount', 0),
-                currency=ai_data.get('currency', 'KZT'),
-                source_file=filename  # Привязываем файл
-            )
-
-            # Сохраняем товары, если есть
-            items = ai_data.get('items', [])
-            for item in items:
-                ReceiptItem.objects.create(
-                    transaction=new_trans,
-                    name=item['name'],
-                    price=item['price'],
-                    quantity=item.get('quantity', 1),
-                    category=item.get('category', '')
+                # Создаем запись в БД
+                Transaction.objects.create(
+                    date=date_obj,
+                    merchant=item['merchant'],
+                    amount=item['amount'],
+                    currency=item['currency'],
+                    transaction_type=item['type'],
+                    source_file=filename  # Ссылка на загруженный файл
                 )
-
-        return redirect('dashboard')
+            return redirect('dashboard')
+        else:
+            # Если пришла ошибка (словарь)
+            error_msg = data.get('error', 'Неизвестная ошибка')
+            return render(request, 'finance/upload.html', {'error': error_msg})
 
     return render(request, 'finance/upload.html')
+
+
+
+
+@require_POST  # Разрешаем только POST запрос для безопасности (передача списка ID)
+def export_transactions(request):
+    # Получаем список ID из формы
+    selected_ids = request.POST.getlist('transaction_ids')
+
+    if not selected_ids:
+        return redirect('dashboard')
+
+    # Создаем CSV ответ
+    response = HttpResponse(content_type='text/csv')
+    response.write(u'\ufeff'.encode('utf8'))  # Исправляет кодировку для Excel (чтобы русский текст читался)
+    response['Content-Disposition'] = 'attachment; filename="selected_finances.csv"'
+
+    writer = csv.writer(response, delimiter=';')  # Точка с запятой лучше для Excel в СНГ
+    writer.writerow(['Дата', 'Описание', 'Сумма', 'Валюта', 'Тип'])
+
+    # Фильтруем транзакции: берем только те, чьи ID есть в списке selected_ids
+    transactions = Transaction.objects.filter(id__in=selected_ids).order_by('-date')
+
+    for t in transactions:
+        writer.writerow([
+            t.date.strftime("%d.%m.%Y") if t.date else "",
+            t.merchant,
+            t.amount,
+            t.currency,
+            t.get_transaction_type_display()
+        ])
+
+    return response
