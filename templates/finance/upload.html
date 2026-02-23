@@ -1,20 +1,125 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru" data-theme="light">
+
 <head>
-    <title>Загрузка</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>baqlau — Загрузить документ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body class="d-flex align-items-center justify-content-center vh-100 bg-light">
-<div class="card p-5 shadow" style="width: 400px;">
-    <h3 class="text-center mb-4">Загрузить документ</h3>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="mb-3">
-            <input type="file" name="document" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
+
+<body>
+
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="#" class="navbar__logo">
+            🏦 <span>baqlau</span>
+        </a>
+        <div class="navbar__right">
+            <!-- Streak (gamification) -->
+            <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
+                <span class="streak-badge__emoji">🔥</span>
+                <span id="streak-count">7</span> дней
+            </div>
+
+            <!-- Theme toggle -->
+            <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
+                <span id="theme-icon">🌙</span>
+            </button>
+
+            <!-- User avatar -->
+            <div class="avatar" title="Профиль пользователя" aria-label="Профиль">У</div>
         </div>
-        <button type="submit" class="btn btn-success w-100">Распознать (Gemini)</button>
-    </form>
-    <a href="{% url 'dashboard' %}" class="btn btn-link w-100 mt-2">Назад</a>
-</div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content main-content--centered">
+        <div class="upload-card">
+            <div class="upload-icon">📄</div>
+            <h1 class="upload-title">Загрузить документ</h1>
+            <p class="upload-subtitle">Поддерживаемые форматы: PDF, JPG, PNG</p>
+
+            {% if error %}
+            <div class="alert-error">
+                <span>⚠️</span> {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="file-input-wrapper">
+                    <input type="file" name="document" id="file-upload" class="file-input" required
+                        accept=".pdf,.jpg,.jpeg,.png">
+                    <label for="file-upload" class="file-input-label">
+                        <span style="font-size: 1.2rem;">📁</span>
+                        <span id="file-label-text">Выберите файл на устройстве</span>
+                    </label>
+                    <div id="file-name" class="file-name-display"></div>
+                </div>
+
+                <button type="submit" class="btn-tonal btn-tonal--primary">
+                    ✨ Распознать (Gemini AI)
+                </button>
+            </form>
+
+            <a href="{% url 'dashboard' %}" class="btn-link">← Вернуться к дашборду</a>
+        </div>
+    </main>
+
+    <script>
+        /* ── THEME TOGGLE ─────────────────────────────────────────── */
+        const root = document.documentElement;
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        function applyTheme(theme) {
+            root.setAttribute('data-theme', theme);
+            themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('baqlau-theme', theme);
+        }
+
+        (function initTheme() {
+            const saved = localStorage.getItem('baqlau-theme');
+            if (saved) {
+                applyTheme(saved);
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark ? 'dark' : 'light');
+            }
+        })();
+
+        themeToggle.addEventListener('click', function () {
+            const current = root.getAttribute('data-theme');
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        });
+
+        /* ── STREAK COUNTER (sync with dashboard) ──────────────────── */
+        (function initStreak() {
+            const streak = parseInt(localStorage.getItem('baqlau-streak') || '0', 10);
+            document.getElementById('streak-count').textContent = streak || 1;
+        })();
+
+        /* ── FILE INPUT FEEDBACK ───────────────────────────────────── */
+        const fileInput = document.getElementById('file-upload');
+        const fileNameDisplay = document.getElementById('file-name');
+        const fileLabelText = document.getElementById('file-label-text');
+
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                fileNameDisplay.textContent = `Выбран файл: ${this.files[0].name}`;
+                fileLabelText.textContent = 'Выбрать другой';
+            } else {
+                fileNameDisplay.textContent = '';
+                fileLabelText.textContent = 'Выберите файл на устройстве';
+            }
+        });
+    </script>
 </body>
+
 </html>

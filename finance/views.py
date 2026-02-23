@@ -8,13 +8,33 @@ from .models import Transaction
 from .ai_service import extract_finance_data
 
 
-def dashboard(request):
-    transactions = Transaction.objects.all().order_by('-date', '-created_at')
+def get_category_chip(t):
+    """Возвращает CSS-класс чипа и его текст по типу/мерчанту транзакции."""
+    if t.transaction_type == 'income':
+        return 'chip--salary', '💼 Зарплата'
+    m = t.merchant.lower()
+    if any(kw in m for kw in ('кофе', 'food', 'еда', 'cafe', 'ресторан', 'burger', 'pizza', 'суши')):
+        return 'chip--food', '🍔 Еда'
+    if any(kw in m for kw in ('аптека', 'health', 'медицин', 'клиника', 'больниц')):
+        return 'chip--health', '💊 Здоровье'
+    if any(kw in m for kw in ('каспи', 'kaspi', 'магазин', 'market', 'shop', 'mall', 'store')):
+        return 'chip--shop', '🛍 Покупки'
+    if any(kw in m for kw in ('такси', 'uber', 'транспорт', 'yandex', 'автобус', 'metro')):
+        return 'chip--transport', '🚌 Транспорт'
+    return 'chip--other', '📦 Другое'
 
-    # Считаем баланс для красоты
+
+def dashboard(request):
+    transactions = list(Transaction.objects.all().order_by('-date', '-created_at'))
+
+    # Считаем баланс
     income = sum(t.amount for t in transactions if t.transaction_type == 'income')
     expense = sum(t.amount for t in transactions if t.transaction_type == 'expense')
     balance = income - expense
+
+    # Аннотируем каждую транзакцию данными чипа (без изменения модели)
+    for t in transactions:
+        t.chip_class, t.chip_label = get_category_chip(t)
 
     context = {
         'transactions': transactions,

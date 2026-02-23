@@ -1,92 +1,272 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
-    <title>Финансы AI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>💰 Мои Финансы</h1>
-        <div>
-            <!-- Кнопка теперь внутри формы или привязана к ней.
-                 Добавим id="export-btn" и атрибут disabled -->
-            <button type="submit" form="export-form" id="export-btn" class="btn btn-success btn-lg me-2" disabled>
-                📥 Экспорт выбранных
-            </button>
-            <a href="{% url 'upload' %}" class="btn btn-primary btn-lg">+ Добавить чек</a>
-        </div>
-    </div>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>baqlau — Финансовый Дашборд</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <!-- Форма для отправки выбранных ID -->
+</head>
+
+<body>
+
+    <!-- ============================================================
+NAVBAR
+============================================================ -->
+    <nav class="navbar">
+        <a href="#" class="navbar__logo">
+            🏦 <span>baqlau</span>
+        </a>
+        <div class="navbar__right">
+            <!-- Streak (gamification) -->
+            <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
+                <span class="streak-badge__emoji">🔥</span>
+                <span id="streak-count">7</span> дней
+            </div>
+
+            <!-- Theme toggle -->
+            <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
+                <span id="theme-icon">🌙</span>
+            </button>
+
+            <!-- User avatar -->
+            <div class="avatar" title="Профиль пользователя" aria-label="Профиль">У</div>
+        </div>
+    </nav>
+
+    <!-- ============================================================
+MAIN CONTENT
+============================================================ -->
+    <main class="main-content">
+
+        <div class="page-title">
+            Дашборд
+            <small>Обзор ваших финансов на сегодня</small>
+        </div>
+
+        <!-- OVERVIEW CARDS -->
+        <div class="overview-grid">
+            <div class="overview-card overview-card--balance">
+                <div class="overview-card__icon">💰</div>
+                <div class="overview-card__label">Текущий баланс</div>
+                <div class="overview-card__value">{{ balance|floatformat:2 }} ₸</div>
+                <div class="overview-card__sub">Доходы минус расходы</div>
+            </div>
+            <div class="overview-card overview-card--income">
+                <div class="overview-card__icon">📈</div>
+                <div class="overview-card__label">Доходы за всё время</div>
+                <div class="overview-card__value">{{ income|floatformat:2 }} ₸</div>
+                <div class="overview-card__sub">Все поступления</div>
+            </div>
+            <div class="overview-card overview-card--expense">
+                <div class="overview-card__icon">📉</div>
+                <div class="overview-card__label">Расходы за всё время</div>
+                <div class="overview-card__value">{{ expense|floatformat:2 }} ₸</div>
+                <div class="overview-card__sub">Все списания</div>
+            </div>
+        </div>
+
+        <!-- AI ASSISTANT CARD -->
+        <div class="ai-card">
+            <div class="ai-card__header">
+                <div class="ai-card__icon">✨</div>
+                <div>
+                    <div class="ai-card__title">Советы от Baqlau AI</div>
+                </div>
+                <span class="ai-card__badge">AI Beta</span>
+            </div>
+            <p class="ai-card__text">
+                Вы отлично справляетесь! 🎉 В этом месяце ваши траты на кофе снизились на
+                <strong>15%</strong>. Рекомендую перевести сэкономленные средства в копилку —
+                небольшой шаг к большой цели. Так держать!
+            </p>
+        </div>
+
+        <!-- TRANSACTIONS SECTION -->
+        <div class="section-header">
+            <div class="section-header__title">Последние транзакции</div>
+            <div class="section-header__actions">
+                <!-- Submit button linked to the form below -->
+                <button type="submit" form="export-form" id="export-btn" class="btn-tonal btn-tonal--export" disabled>
+                    📥 Экспорт выбранных
+                </button>
+                <a href="{% url 'upload' %}" class="btn-tonal btn-tonal--secondary">
+                    ＋ Добавить чек
+                </a>
+            </div>
+        </div>
+
+        <div class="table-card">
             <form id="export-form" action="{% url 'export' %}" method="POST">
                 {% csrf_token %}
-                <table class="table table-hover">
-                    <thead class="table-dark">
-                    <tr>
-                        <th style="width: 40px;">
-                            <input type="checkbox" id="select-all" class="form-check-input">
-                        </th>
-                        <th>Дата</th>
-                        <th>Магазин/Описание</th>
-                        <th>Сумма</th>
-                        <th>Тип</th>
-                    </tr>
+                <table class="tx-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="select-all" class="md-checkbox" title="Выбрать все">
+                            </th>
+                            <th>Дата</th>
+                            <th>Магазин / Описание</th>
+                            <th>Категория</th>
+                            <th>Сумма</th>
+                            <th>Тип</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    {% for t in transactions %}
-                        <tr>
+                        {% for t in transactions %}
+                        <tr id="row-{{ t.id }}">
                             <td>
-                                <!-- Чекбокс с ID транзакции -->
                                 <input type="checkbox" name="transaction_ids" value="{{ t.id }}"
-                                       class="form-check-input transaction-checkbox">
+                                    class="md-checkbox transaction-checkbox">
                             </td>
-                            <td>{{ t.date|date:"d.m.Y" }}</td>
+                            <td class="date-cell">{{ t.date|date:"d.m.Y" }}</td>
                             <td>{{ t.merchant }}</td>
-                            <td class="fw-bold {% if t.transaction_type == 'expense' %}text-danger{% else %}text-success{% endif %}">
-                                {% if t.transaction_type == 'expense' %}-{% else %}
-                                    +{% endif %} {{ t.amount }} {{ t.currency }}
+                            <td>
+                                {% if t.transaction_type == 'income' %}<span class="chip chip--salary">💵
+                                    Пополнение</span>
+                                {% elif "кофе" in t.merchant|lower or "food" in t.merchant|lower or "еда" in t.merchant|lower or "cafe" in t.merchant|lower or "ресторан" in t.merchant|lower or "burger" in t.merchant|lower %}
+                                    <span class="chip chip--food">🍔 Еда</span>
+                                    {% elif "аптека" in t.merchant|lower or "health" in t.merchant|lower or "медицин" in t.merchant|lower or "клиника" in t.merchant|lower %}
+                                    <span>class="chip chip--health">💊%} Здоровье</span>
+                                {% elif "каспи" in t.merchant|lower or "kaspi" in t.merchant|lower or "магазин" in t.merchant|lower or "market" in t.merchant|lower or "shop" in t.merchant|lower or "mall" in t.merchant|lower %}
+                                    <span class="chip chip--shop">🛍 Покупки</span>
+                                {% elif "такси" in t.merchant|lower or "uber" in t.merchant|lower or "транспорт" in t.merchant|lower or "yandex" in t.merchant|lower or "автобус" in t.merchant|lower %}
+                                    <span class="chip chip--transport">🚌 Транспорт</span>
+                                {% else %}<span class="chip chip--other">📦 Другое</span>
+                                {% endif %}
+                            </td>
+
+                            <td
+                                class="{% if t.transaction_type == 'expense' %}amount-expense{% else %}amount-income{% endif %}">
+                                {% if t.transaction_type == 'expense' %}−{% else %}+{% endif %}
+                                {{ t.amount }} {{ t.currency }}
                             </td>
                             <td>{{ t.get_transaction_type_display }}</td>
                         </tr>
-                    {% endfor %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <div class="empty-state__icon">📭</div>
+                                    <div class="empty-state__text">Транзакций пока нет. Загрузите выписку!</div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </form>
         </div>
-    </div>
-</div>
-<script>
-    const selectAll = document.getElementById('select-all');
-    const checkboxes = document.querySelectorAll('.transaction-checkbox');
-    const exportBtn = document.getElementById('export-btn');
 
-    function updateButtonState() {
-        // Проверяем, выбран ли хоть один чекбокс
-        const checkedCount = document.querySelectorAll('.transaction-checkbox:checked').length;
-        exportBtn.disabled = checkedCount === 0;
+    </main>
 
-        // Обновляем текст кнопки для наглядности
-        if (checkedCount > 0) {
-            exportBtn.innerText = `📥 Экспорт (${checkedCount})`;
-        } else {
-            exportBtn.innerText = `📥 Экспорт выбранных`;
+    <!-- ============================================================
+JAVASCRIPT
+============================================================ -->
+    <script>
+        /* ── THEME TOGGLE ─────────────────────────────────────────── */
+        const root = document.documentElement;
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        function applyTheme(theme) {
+            root.setAttribute('data-theme', theme);
+            themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('baqlau-theme', theme);
         }
-    }
 
-    // Логика "Выбрать все"
-    selectAll.addEventListener('change', function() {
-        checkboxes.forEach(cb => cb.checked = selectAll.checked);
-        updateButtonState();
-    });
+        // Initialise from localStorage (fallback to system preference)
+        (function initTheme() {
+            const saved = localStorage.getItem('baqlau-theme');
+            if (saved) {
+                applyTheme(saved);
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark ? 'dark' : 'light');
+            }
+        })();
 
-    // Логика для каждого отдельного чекбокса
-    checkboxes.forEach(cb => {
-        cb.addEventListener('change', updateButtonState);
-    });
-</script>
+        themeToggle.addEventListener('click', function () {
+            const current = root.getAttribute('data-theme');
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        });
+
+        /* ── CHECKBOX LOGIC ───────────────────────────────────────── */
+        const selectAll = document.getElementById('select-all');
+        const checkboxes = document.querySelectorAll('.transaction-checkbox');
+        const exportBtn = document.getElementById('export-btn');
+
+        function updateExportButton() {
+            const checkedCount = document.querySelectorAll('.transaction-checkbox:checked').length;
+            exportBtn.disabled = checkedCount === 0;
+
+            if (checkedCount > 0) {
+                exportBtn.textContent = `📥 Экспорт (${checkedCount})`;
+                exportBtn.classList.add('active');
+            } else {
+                exportBtn.textContent = `📥 Экспорт выбранных`;
+                exportBtn.classList.remove('active');
+            }
+        }
+
+        function updateRowHighlight(checkbox) {
+            const row = checkbox.closest('tr');
+            if (row) {
+                row.classList.toggle('row-selected', checkbox.checked);
+            }
+        }
+
+        // "Select all" handler
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(cb => {
+                cb.checked = selectAll.checked;
+                updateRowHighlight(cb);
+            });
+            updateExportButton();
+        });
+
+        // Individual checkbox handler
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                updateRowHighlight(this);
+                updateExportButton();
+
+                // Sync "select-all" state
+                const allChecked = document.querySelectorAll('.transaction-checkbox:checked').length === checkboxes.length;
+                const anyChecked = document.querySelectorAll('.transaction-checkbox:checked').length > 0;
+                selectAll.checked = allChecked;
+                selectAll.indeterminate = anyChecked && !allChecked;
+            });
+        });
+
+        /* ── STREAK COUNTER (localStorage demo) ──────────────────── */
+        (function initStreak() {
+            const today = new Date().toDateString();
+            const lastVisit = localStorage.getItem('baqlau-last-visit');
+            let streak = parseInt(localStorage.getItem('baqlau-streak') || '0', 10);
+
+            if (lastVisit !== today) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                if (lastVisit === yesterday.toDateString()) {
+                    streak += 1;             // consecutive day → increment
+                } else if (!lastVisit) {
+                    streak = 1;              // first ever visit
+                } else {
+                    streak = 1;              // streak broken → reset
+                }
+                localStorage.setItem('baqlau-last-visit', today);
+                localStorage.setItem('baqlau-streak', streak);
+            }
+
+            document.getElementById('streak-count').textContent = streak;
+        })();
+    </script>
 </body>
+
 </html>
