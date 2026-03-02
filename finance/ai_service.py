@@ -19,7 +19,13 @@ def clean_amount(amount_str):
 
 def parse_halyk_bank(pdf):
     transactions = []
-    table_settings = {"vertical_strategy": "lines", "horizontal_strategy": "lines", "snap_tolerance": 4}
+    table_settings = {
+        "vertical_strategy": "lines",
+        "horizontal_strategy": "lines",
+        "snap_tolerance": 4,
+        "text_x_tolerance": 2,
+        "text_y_tolerance": 2,
+    }
 
     for page in pdf.pages:
         tables = page.extract_tables(table_settings)
@@ -29,7 +35,7 @@ def parse_halyk_bank(pdf):
                 if len(clean_row) < 4: continue
 
                 col_date = clean_row[0].replace("\n", " ")
-                col_desc = clean_row[2].replace("\n", " ")
+                col_desc = " ".join(clean_row[2].split())
                 col_amount = clean_row[3]
 
                 # Фильтры заголовков

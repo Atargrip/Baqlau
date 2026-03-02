@@ -20,7 +20,13 @@ def clean_amount(amount_str):
 
 def parse_halyk_bank(pdf):
     transactions = []
-    table_settings = {"vertical_strategy": "lines", "horizontal_strategy": "lines", "snap_tolerance": 4}
+    table_settings = {
+        "vertical_strategy": "lines",
+        "horizontal_strategy": "lines",
+        "snap_tolerance": 4,
+        "text_x_tolerance": 2,
+        "text_y_tolerance": 2,
+    }
 
     for page in pdf.pages:
         tables = page.extract_tables(table_settings)

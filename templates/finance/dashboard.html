@@ -5,19 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>baqlau — Финансовый Дашборд</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
     <!-- ============================================================
-NAVBAR
-============================================================ -->
+    NAVBAR
+    ============================================================ -->
     <nav class="navbar">
         <a href="#" class="navbar__logo">
             🏦 <span>baqlau</span>
@@ -34,14 +32,25 @@ NAVBAR
                 <span id="theme-icon">🌙</span>
             </button>
 
-            <!-- User avatar -->
-            <div class="avatar" title="Профиль пользователя" aria-label="Профиль">У</div>
+            <!-- User avatar & Logout -->
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
+                <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-link"
+                        style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
+                    </button>
+                </form>
+                <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
+                    {{user.username|slice:":1"|upper}}</div>
+            </div>
         </div>
     </nav>
 
+
     <!-- ============================================================
-MAIN CONTENT
-============================================================ -->
+    MAIN CONTENT
+    ============================================================ -->
     <main class="main-content">
 
         <div class="page-title">
@@ -49,29 +58,63 @@ MAIN CONTENT
             <small>Обзор ваших финансов на сегодня</small>
         </div>
 
-        <!-- OVERVIEW CARDS -->
-        <div class="overview-grid">
-            <div class="overview-card overview-card--balance">
-                <div class="overview-card__icon">💰</div>
-                <div class="overview-card__label">Текущий баланс</div>
-                <div class="overview-card__value">{{ balance|floatformat:2 }} ₸</div>
-                <div class="overview-card__sub">Доходы минус расходы</div>
+        <!-- TOP SECTION: Overview (left) + Monthly Chart (right) -->
+        <div class="dashboard-top">
+            <!-- Left: Vertical list of cards (Sketch-accurate accents) -->
+            <div class="overview-list">
+                <div class="overview-card overview-card--balance">
+                    <div class="overview-card__icon">💰</div>
+                    <div class="overview-card__label">Текущий баланс</div>
+                    <div class="overview-card__value">{{ balance|floatformat:2 }} ₸</div>
+                    <div class="overview-card__sub">Доходы минус расходы</div>
+                </div>
+                <div class="overview-card overview-card--income">
+                    <div class="overview-card__icon">📈</div>
+                    <div class="overview-card__label">Общий доход</div>
+                    <div class="overview-card__value">{{ income|floatformat:2 }} ₸</div>
+                    <div class="overview-card__sub">Все поступления</div>
+                </div>
+                <div class="overview-card overview-card--expense">
+                    <div class="overview-card__icon">📉</div>
+                    <div class="overview-card__label">Общий расход</div>
+                    <div class="overview-card__value">{{ expense|floatformat:2 }} ₸</div>
+                    <div class="overview-card__sub">Все списания</div>
+                </div>
             </div>
-            <div class="overview-card overview-card--income">
-                <div class="overview-card__icon">📈</div>
-                <div class="overview-card__label">Доходы за всё время</div>
-                <div class="overview-card__value">{{ income|floatformat:2 }} ₸</div>
-                <div class="overview-card__sub">Все поступления</div>
-            </div>
-            <div class="overview-card overview-card--expense">
-                <div class="overview-card__icon">📉</div>
-                <div class="overview-card__label">Расходы за всё время</div>
-                <div class="overview-card__value">{{ expense|floatformat:2 }} ₸</div>
-                <div class="overview-card__sub">Все списания</div>
+
+            <!-- Right: Monthly Chart Card (Purple/Modern MD3) -->
+            <div class="chart-card">
+                <div class="chart-card__header">
+                    <div class="chart-card__title">Сводка за месяц</div>
+
+                    <div class="month-controls">
+                        <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn-icon"
+                            title="Предыдущий месяц">
+                            <span>◀</span>
+                        </a>
+                        <div class="month-label" id="month-label">
+                            {{ month_display }}
+                        </div>
+                        <a href="?month={{ next_month }}&year={{ next_year }}" class="btn-icon" title="Следующий месяц">
+                            <span>▶</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="chart-view-wrapper">
+                    {% if chart_values %}
+                    <canvas id="categoryChart"></canvas>
+                    {% else %}
+                    <div class="empty-state" style="margin: 0;">
+                        <div class="empty-state__icon">📊</div>
+                        <div class="empty-state__text">Нет данных за этот месяц</div>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
-        <!-- AI ASSISTANT CARD -->
+        <!-- AI ASSISTANT CARD (Blue wide block below, according to sketch) -->
         <div class="ai-card">
             <div class="ai-card__header">
                 <div class="ai-card__icon">✨</div>
@@ -91,7 +134,6 @@ MAIN CONTENT
         <div class="section-header">
             <div class="section-header__title">Последние транзакции</div>
             <div class="section-header__actions">
-                <!-- Submit button linked to the form below -->
                 <button type="submit" form="export-form" id="export-btn" class="btn-tonal btn-tonal--export" disabled>
                     📥 Экспорт выбранных
                 </button>
@@ -127,20 +169,8 @@ MAIN CONTENT
                             <td class="date-cell">{{ t.date|date:"d.m.Y" }}</td>
                             <td>{{ t.merchant }}</td>
                             <td>
-                                {% if t.transaction_type == 'income' %}<span class="chip chip--salary">💵
-                                    Пополнение</span>
-                                {% elif "кофе" in t.merchant|lower or "food" in t.merchant|lower or "еда" in t.merchant|lower or "cafe" in t.merchant|lower or "ресторан" in t.merchant|lower or "burger" in t.merchant|lower %}
-                                    <span class="chip chip--food">🍔 Еда</span>
-                                    {% elif "аптека" in t.merchant|lower or "health" in t.merchant|lower or "медицин" in t.merchant|lower or "клиника" in t.merchant|lower %}
-                                    <span>class="chip chip--health">💊%} Здоровье</span>
-                                {% elif "каспи" in t.merchant|lower or "kaspi" in t.merchant|lower or "магазин" in t.merchant|lower or "market" in t.merchant|lower or "shop" in t.merchant|lower or "mall" in t.merchant|lower %}
-                                    <span class="chip chip--shop">🛍 Покупки</span>
-                                {% elif "такси" in t.merchant|lower or "uber" in t.merchant|lower or "транспорт" in t.merchant|lower or "yandex" in t.merchant|lower or "автобус" in t.merchant|lower %}
-                                    <span class="chip chip--transport">🚌 Транспорт</span>
-                                {% else %}<span class="chip chip--other">📦 Другое</span>
-                                {% endif %}
+                                <span class="chip {{ t.chip_class }}">{{ t.chip_label }}</span>
                             </td>
-
                             <td
                                 class="{% if t.transaction_type == 'expense' %}amount-expense{% else %}amount-income{% endif %}">
                                 {% if t.transaction_type == 'expense' %}−{% else %}+{% endif %}
@@ -166,8 +196,8 @@ MAIN CONTENT
     </main>
 
     <!-- ============================================================
-JAVASCRIPT
-============================================================ -->
+    JAVASCRIPT
+    ============================================================ -->
     <script>
         /* ── THEME TOGGLE ─────────────────────────────────────────── */
         const root = document.documentElement;
@@ -180,7 +210,6 @@ JAVASCRIPT
             localStorage.setItem('baqlau-theme', theme);
         }
 
-        // Initialise from localStorage (fallback to system preference)
         (function initTheme() {
             const saved = localStorage.getItem('baqlau-theme');
             if (saved) {
@@ -204,7 +233,6 @@ JAVASCRIPT
         function updateExportButton() {
             const checkedCount = document.querySelectorAll('.transaction-checkbox:checked').length;
             exportBtn.disabled = checkedCount === 0;
-
             if (checkedCount > 0) {
                 exportBtn.textContent = `📥 Экспорт (${checkedCount})`;
                 exportBtn.classList.add('active');
@@ -216,55 +244,127 @@ JAVASCRIPT
 
         function updateRowHighlight(checkbox) {
             const row = checkbox.closest('tr');
-            if (row) {
-                row.classList.toggle('row-selected', checkbox.checked);
-            }
+            if (row) row.classList.toggle('row-selected', checkbox.checked);
         }
 
-        // "Select all" handler
-        selectAll.addEventListener('change', function () {
-            checkboxes.forEach(cb => {
-                cb.checked = selectAll.checked;
-                updateRowHighlight(cb);
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                checkboxes.forEach(cb => {
+                    cb.checked = selectAll.checked;
+                    updateRowHighlight(cb);
+                });
+                updateExportButton();
             });
-            updateExportButton();
-        });
+        }
 
-        // Individual checkbox handler
         checkboxes.forEach(cb => {
             cb.addEventListener('change', function () {
                 updateRowHighlight(this);
                 updateExportButton();
-
-                // Sync "select-all" state
                 const allChecked = document.querySelectorAll('.transaction-checkbox:checked').length === checkboxes.length;
                 const anyChecked = document.querySelectorAll('.transaction-checkbox:checked').length > 0;
-                selectAll.checked = allChecked;
-                selectAll.indeterminate = anyChecked && !allChecked;
+                if (selectAll) {
+                    selectAll.checked = allChecked;
+                    selectAll.indeterminate = anyChecked && !allChecked;
+                }
             });
         });
 
-        /* ── STREAK COUNTER (localStorage demo) ──────────────────── */
+        /* ── STREAK COUNTER ──────────────────── */
         (function initStreak() {
             const today = new Date().toDateString();
             const lastVisit = localStorage.getItem('baqlau-last-visit');
             let streak = parseInt(localStorage.getItem('baqlau-streak') || '0', 10);
-
             if (lastVisit !== today) {
                 const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
                 if (lastVisit === yesterday.toDateString()) {
-                    streak += 1;             // consecutive day → increment
-                } else if (!lastVisit) {
-                    streak = 1;              // first ever visit
+                    streak += 1;
                 } else {
-                    streak = 1;              // streak broken → reset
+                    streak = 1;
                 }
                 localStorage.setItem('baqlau-last-visit', today);
                 localStorage.setItem('baqlau-streak', streak);
             }
+            const el = document.getElementById('streak-count');
+            if (el) el.textContent = streak;
+        })();
 
-            document.getElementById('streak-count').textContent = streak;
+        /* ── CATEGORY CHART (Chart.js) ───────────────────────────── */
+        {% if chart_values %}
+        (function initChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const palette = ['#6750A4', '#5E7B6A', '#B3261E', '#7D5260', '#9A82DB', '#006A6A', '#938F99'];
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ chart_labels| safe }},
+        datasets: [{
+            data: {{ chart_values| safe }},
+            backgroundColor: palette,
+            borderWidth: 0,
+            hoverOffset: 15,
+            borderRadius: 8,
+            spacing: 8
+                    }]
+                },
+        options: {
+            layout: {
+                padding: 24
+            },
+            responsive: true,
+                maintainAspectRatio: false,
+                    cutout: '84%',
+                        plugins: {
+                legend: {
+                    position: 'right',
+                        labels: {
+                        padding: 20,
+                            usePointStyle: true,
+                                font: { family: "'Inter', sans-serif", size: 12, weight: '600' },
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-on-surface')
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(28, 27, 31, 0.95)',
+                        padding: 12,
+                            cornerRadius: 12,
+                                callbacks: {
+                        label: function(context) {
+                            let val = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT' }).format(context.parsed);
+                            return ` ${context.label}: ${val}`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateScale: true,
+                    animateRotate: true,
+                        duration: 1800,
+                            easing: 'easeOutElastic'
+            }
+        }
+            });
+        }) ();
+        {% endif %}
+
+        (function translateMonth() {
+            const monthMap = {
+                'January': 'Январь', 'February': 'Февраль', 'March': 'Март', 'April': 'Апрель',
+                'May': 'Май', 'June': 'Июнь', 'July': 'Июль', 'August': 'Август',
+                'September': 'Сентябрь', 'October': 'Октябрь', 'November': 'Ноябрь', 'December': 'Декабрь'
+            };
+            const label = document.getElementById('month-label');
+            if (label) {
+                let text = label.innerText;
+                for (let [eng, rus] of Object.entries(monthMap)) {
+                    if (text.includes(eng)) {
+                        label.innerText = text.replace(eng, rus);
+                        break;
+                    }
+                }
+            }
         })();
     </script>
 </body>
