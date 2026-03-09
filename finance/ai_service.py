@@ -1,7 +1,10 @@
 import pdfplumber
 import re
 import os
+import json
 from decimal import Decimal
+from google import genai
+from google.genai import types
 
 
 # Вспомогательная функция очистки суммы
@@ -103,13 +106,72 @@ def parse_kaspi_gold(pdf):
     return transactions
 
 
-def extract_finance_data(pdf_path):
-    if not os.path.exists(pdf_path):
+def parse_receipt_image(image_path):
+    api_key = os.environ.get('GEMINI_API_KEY')
+    if not api_key:
+        return {"error": "GEMINI_API_KEY не настроен"}
+        
+    try:
+        client = genai.Client()
+        
+        prompt = """
+        Проанализируй этот чек. Верни строго JSON в таком формате:
+        {
+          "merchant": "Название магазина (если не найдено, 'Неизвестно')",
+          "date": "DD.MM.YYYY (если не найдено, текущая дата или null)",
+          "amount": 1500.00 (общая сумма цифрой),
+          "currency": "KZT",
+          "type": "expense",
+          "items":[
+            {"name": "Молоко", "price": 500.00, "quantity": 1},
+            {"name": "Хлеб", "price": 1000.00, "quantity": 1}
+          ]
+        }
+        Не добавляй Markdown-разметку (как ```json) в ответ, верни только сырой JSON. Если это не чек или текст не читаем, верни {"error": "Не удалось распознать чек"}. Валюта по умолчанию KZT, тип по умолчанию "expense". Названия товаров переведи в нормальный читаемый вид.
+        """
+        
+        ext = os.path.splitext(image_path)[1].lower()
+        mime_type = "image/png" if ext == ".png" else "image/jpeg"
+        
+        with open(image_path, "rb") as f:
+            image_bytes = f.read()
+
+        response = client.models.generate_content(
+            model='gemini-2.5-flash-lite',
+            contents=[
+                types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                prompt
+            ],
+            config=types.GenerateContentConfig(
+                 response_mime_type="application/json",
+            )
+        )
+        
+        # Parse JSON
+        text = response.text.strip()
+        data = json.loads(text)
+        
+        if "error" in data:
+            return data
+            
+        # Return as list of transactions
+        return [data]
+        
+    except Exception as e:
+        return {"error": f"Ошибка AI распознавания: {str(e)}"}
+
+
+def extract_finance_data(file_path):
+    if not os.path.exists(file_path):
         return {"error": "Файл не найден"}
+
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext in ['.jpg', '.jpeg', '.png']:
+        return parse_receipt_image(file_path)
 
     results = []
     try:
-        with pdfplumber.open(pdf_path) as pdf:
+        with pdfplumber.open(file_path) as pdf:
             if len(pdf.pages) == 0: return {"error": "PDF пустой"}
 
             first_page_text = pdf.pages[0].extract_text()

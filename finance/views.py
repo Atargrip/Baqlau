@@ -9,7 +9,11 @@ from django.db.models.functions import ExtractMonth, ExtractYear
 import csv
 from datetime import date, datetime
 from django.views.decorators.http import require_POST
-from .models import Transaction
+from django.http import JsonResponse
+import json
+import os
+from google import genai
+from .models import Transaction, ReceiptItem
 from .ai_service import extract_finance_data
 
 
@@ -175,7 +179,7 @@ def upload_file(request):
                 except (ValueError, TypeError):
                     date_obj = None
 
-                Transaction.objects.create(
+                t = Transaction.objects.create(
                     user=request.user,
                     date=date_obj,
                     merchant=item['merchant'],
@@ -185,6 +189,17 @@ def upload_file(request):
                     category=auto_categorize(item['merchant'], item['type']),
                     source_file=filename
                 )
+                
+                # Check for parsed items from receipt and save them
+                if "items" in item and isinstance(item["items"], list):
+                    for r_item in item["items"]:
+                        ReceiptItem.objects.create(
+                            transaction=t,
+                            name=r_item.get("name", "Неизвестно"),
+                            price=r_item.get("price", 0),
+                            quantity=r_item.get("quantity", 1)
+                        )
+
             return redirect('dashboard')
         else:
             error_msg = data.get('error', 'Неизвестная ошибка')
@@ -220,4 +235,71 @@ def export_transactions(request):
         ])
 
     return response
+
+
+@login_required
+@require_POST
+def edit_receipt_item(request, item_id):
+    try:
+        item = ReceiptItem.objects.get(id=item_id, transaction__user=request.user)
+        data = json.loads(request.body)
+        
+        item.name = data.get('name', item.name)
+        item.price = data.get('price', item.price)
+        item.quantity = data.get('quantity', item.quantity)
+        
+        item.save()
+        return JsonResponse({"status": "success"})
+    except ReceiptItem.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Товар не найден"}, status=404)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@login_required
+def get_ai_advice(request):
+    today = date.today()
+    expenses = Transaction.objects.filter(
+        user=request.user,
+        transaction_type='expense',
+        date__month=today.month,
+        date__year=today.year
+    ).values('category').annotate(total=Sum('amount'))
+    
+    mapping = {
+        'food': 'Еда',
+        'transport': 'Транспорт',
+        'shopping': 'Покупки',
+        'health': 'Здоровье',
+        'entertainment': 'Развлечения',
+        'salary': 'Зарплата',
+        'utilities': 'Услуги',
+        'other': 'Другое'
+    }
+    
+    summary_lines = []
+    for exp in expenses:
+        cat_name = mapping.get(exp['category'], 'Другое')
+        total = exp['total']
+        summary_lines.append(f"{cat_name}: {total} тг")
+        
+    summary_text = ", ".join(summary_lines)
+    if not summary_text:
+        return JsonResponse({"advice": "Пока нет данных о тратах в этом месяце. Начните добавлять расходы!"})
+        
+    prompt = f"Проанализируй эти траты пользователя по категориям за текущий месяц и дай 1 короткий, полезный и подбадривающий финансовый совет на русском языке. Только текст совета, без markdown.\n{summary_text}"
+    
+    api_key = os.environ.get('GEMINI_API_KEY')
+    if not api_key:
+        return JsonResponse({"advice": "GEMINI_API_KEY не установлен. Пожалуйста, добавьте ключ в переменные окружения."})
+        
+    try:
+        client = genai.Client()
+        response = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=prompt,
+        )
+        return JsonResponse({"advice": response.text.strip()})
+    except Exception as e:
+        return JsonResponse({"advice": "Не удалось получить совет от ИИ на данный момент. Попробуйте позже."})
 

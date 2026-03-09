@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>baqlau — Финансовый Дашборд</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=4">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -118,15 +118,16 @@
         <div class="ai-card">
             <div class="ai-card__header">
                 <div class="ai-card__icon">✨</div>
-                <div>
+                <div style="flex: 1;">
                     <div class="ai-card__title">Советы от Baqlau AI</div>
                 </div>
-                <span class="ai-card__badge">AI Beta</span>
+                <button type="button" id="btn-ai-advice" class="btn-tonal btn-tonal--secondary"
+                    onclick="fetchAiAdvice()">
+                    Получить совет от ИИ
+                </button>
             </div>
-            <p class="ai-card__text">
-                Вы отлично справляетесь! 🎉 В этом месяце ваши траты на кофе снизились на
-                <strong>15%</strong>. Рекомендую перевести сэкономленные средства в копилку —
-                небольшой шаг к большой цели. Так держать!
+            <p class="ai-card__text" id="ai-advice-text">
+                Нажмите кнопку выше, чтобы получить умный совет по вашим тратам в этом месяце.
             </p>
         </div>
 
@@ -176,8 +177,20 @@
                                 {% if t.transaction_type == 'expense' %}−{% else %}+{% endif %}
                                 {{ t.amount }} {{ t.currency }}
                             </td>
-                            <td>{{ t.get_transaction_type_display }}</td>
+                            <td>
+                                {{ t.get_transaction_type_display }}
+                                {% if t.items.exists %}
+                                <br>
+                                <button type="button" class="btn-tonal btn-tonal--secondary"
+                                    style="margin-top: 4px; padding: 4px 8px; font-size: 0.8rem;"
+                                    data-tx-id="{{ t.id }}"
+                                    data-source-url="{% if t.source_file %}{{ t.source_file.url }}{% else %}{% endif %}"
+                                    data-items="{% for item in t.items.all %}{{ item.id }}|{{ item.name|escapejs }}|{{ item.price|stringformat:'.2f' }}|{{ item.quantity }}{% if not forloop.last %}||{% endif %}{% endfor %}"
+                                    onclick="openReceiptModal(this)">Детали чека</button>
+                                {% endif %}
+                            </td>
                         </tr>
+
                         {% empty %}
                         <tr>
                             <td colspan="6">
@@ -194,6 +207,21 @@
         </div>
 
     </main>
+
+    <!-- ============================================================
+    MODAL OVERLAY
+    ============================================================ -->
+    <div class="modal-overlay" id="receiptModal" onclick="closeReceiptModal(event)">
+        <div class="modal-container" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">Детали чека</div>
+                <button type="button" class="modal-close" onclick="closeReceiptModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body-content">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
 
     <!-- ============================================================
     JAVASCRIPT
@@ -269,6 +297,143 @@
                 }
             });
         });
+
+        /* ── FETCH AI ADVICE ───────────────────────────────────────── */
+        async function fetchAiAdvice() {
+            const btn = document.getElementById('btn-ai-advice');
+            const textEl = document.getElementById('ai-advice-text');
+
+            btn.disabled = true;
+            btn.textContent = 'Анализируем...';
+            textEl.innerHTML = '<span style="opacity: 0.7;">Отправляем данные в Gemini API, подождите...</span>';
+
+            try {
+                const response = await fetch('{% url "ai_advice" %}');
+                const data = await response.json();
+
+                if (data.advice) {
+                    textEl.textContent = data.advice;
+                } else {
+                    textEl.textContent = 'Не удалось получить совет.';
+                }
+            } catch (err) {
+                textEl.textContent = 'Ошибка соединения с сервером.';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Получить совет от ИИ';
+            }
+        }
+
+        /* ── RECEIPT DETAILS & EDIT ITEM ───────────────────────────── */
+        function openReceiptModal(btn) {
+            const modal = document.getElementById('receiptModal');
+            const content = document.getElementById('modal-body-content');
+
+            const rawData = btn.getAttribute('data-items');
+            const sourceUrl = btn.getAttribute('data-source-url');
+
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    ${sourceUrl ? `
+                    <div style="margin-bottom: 16px;">
+                        <a href="${sourceUrl}" target="_blank" class="btn-tonal btn-tonal--secondary">Скачать изображение чека</a>
+                    </div>
+                    ` : ''}
+                    <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 12px; color: var(--md-on-surface);">Товары в чеке:</div>
+            `;
+
+            if (rawData) {
+                const items = rawData.split('||').filter(x => x.trim().length > 0);
+
+                html += `
+                    <table class="tx-table" style="background: var(--md-surface); border-radius: 8px; overflow: hidden; border: 1px solid var(--md-outline-variant);">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Цена</th>
+                                <th>Кол-во</th>
+                                <th>Действие</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                items.forEach(itemStr => {
+                    const parts = itemStr.split('|');
+                    if (parts.length < 4) return;
+
+                    const [id, name, price, qty] = parts;
+                    html += `
+                        <tr>
+                            <td><input type="text" id="itemName-${id}" value="${name.replace(/"/g, '&quot;')}" class="md-input" style="padding: 8px; width: 100%; min-width: 300px;"></td>
+                            <td><input type="number" id="itemPrice-${id}" value="${price}" class="md-input" style="padding: 8px; width: 100px;" step="0.01"></td>
+                            <td><input type="number" id="itemQty-${id}" value="${qty}" class="md-input" style="padding: 8px; width: 70px;" step="0.1"></td>
+                            <td>
+                                <button type="button" onclick="saveReceiptItem(${id}, this)" class="btn-tonal btn-tonal--secondary" style="padding: 6px 14px; font-size: 0.85rem;">Сохранить</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                html += `<p style="color: var(--md-outline-variant);">Товары не найдены.</p>`;
+            }
+
+            html += `</div>`;
+            content.innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        function closeReceiptModal(event) {
+            if (event && event.target !== document.getElementById('receiptModal') && event.type !== 'click') {
+                return;
+            }
+            const modal = document.getElementById('receiptModal');
+            modal.classList.remove('active');
+        }
+
+        async function saveReceiptItem(itemId, btnElement) {
+            const name = document.getElementById(`itemName-${itemId}`).value;
+            const price = document.getElementById(`itemPrice-${itemId}`).value;
+            const quantity = document.getElementById(`itemQty-${itemId}`).value;
+
+            const originalText = btnElement.textContent;
+            btnElement.textContent = '...';
+            btnElement.disabled = true;
+
+            try {
+                const response = await fetch(`/edit-item/${itemId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        price: price,
+                        quantity: quantity
+                    })
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    btnElement.textContent = '✓';
+                    setTimeout(() => { btnElement.textContent = originalText; btnElement.disabled = false; }, 1500);
+                } else {
+                    alert('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
+                    btnElement.textContent = originalText;
+                    btnElement.disabled = false;
+                }
+            } catch (err) {
+                alert('Ошибка соединения при сохранении');
+                btnElement.textContent = originalText;
+                btnElement.disabled = false;
+            }
+        }
 
         /* ── STREAK COUNTER ──────────────────── */
         (function initStreak() {

@@ -1096,3 +1096,106 @@ body {
         font-size: 2.5rem;
     }
 }
+
+/* ===================================================
+   MODAL WINDOW (MD3)
+=================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-container {
+    background: var(--md-surface);
+    width: 90%;
+    max-width: 800px;
+    max-height: 85vh;
+    border-radius: var(--radius-card-large);
+    box-shadow: var(--shadow-elevated);
+    display: flex;
+    flex-direction: column;
+    transform: translateY(20px) scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+}
+
+.modal-overlay.active .modal-container {
+    transform: translateY(0) scale(1);
+}
+
+.modal-header {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--md-on-surface);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--md-on-surface-variant);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+}
+
+.modal-close:hover {
+    background: var(--md-surface-container-high);
+    color: var(--md-on-surface);
+}
+
+.modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.md-input {
+    background: var(--md-surface-containerLowest);
+    border: 1px solid var(--md-outline);
+    color: var(--md-on-surface);
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.md-input:focus {
+    outline: none;
+    border-color: var(--md-primary);
+    box-shadow: 0 0 0 2px var(--md-primary-container);
+}
+
+[data-theme="dark"] .md-input {
+    background: var(--md-surface-container);
+}
