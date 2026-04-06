@@ -164,13 +164,13 @@
                 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--md-on-surface-variant); margin-bottom: 8px; margin-left: 16px;">
                 Меню</div>
 
-            <button class="tab-btn active">
+            <a href="{% url 'dashboard' %}" class="tab-btn" style="text-decoration: none;">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📊</span> Дашборд
-            </button>
+            </a>
             <!-- <button class="tab-btn">
             <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📁</span> Проекты
         </button> -->
-            <a href="{% url 'transactions' %}" class="tab-btn" style="text-decoration: none;">
+            <a href="{% url 'transactions' %}" class="tab-btn active" style="text-decoration: none;">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📈</span> Транзакции
             </a>
 
@@ -200,84 +200,18 @@
 
         <main class="main-content" style="flex: 1; padding: 0; max-width: none; margin: 0;">
             <div class="page-title" style="margin-bottom: 24px; margin-top: 0;">
-                Дашборд
-                <small>Обзор ваших финансов и статистика</small>
+                Транзакции
+                <small>История ваших доходов и расходов</small>
             </div>
 
             <!-- Сетка карточек по аналогии с макетом (2 колонки) -->
             <div class="dashboard-grid">
 
-                <!-- Левая верхняя широкая карточка (Аналог Growth insights) -->
-                <div class="b-card card-ai" style="padding: 32px; position: relative; overflow: hidden;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; position: relative; z-index: 2;">
-                        <div
-                            style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase;">
-                            ✨ Baqlau AI Insights
-                        </div>
-                    </div>
-                    <h2
-                        style="font-size: 2.2rem; margin: 0 0 12px 0; position: relative; z-index: 2; line-height: 1.2;">
-                        Аналитика бюджета<br>уже готова</h2>
-                    <p id="ai-advice-text"
-                        style="font-size: 1rem; opacity: 0.9; margin: 0 0 24px 0; line-height: 1.5; max-width: 80%; position: relative; z-index: 2; min-height: 72px;">
-                        Искусственный интеллект проанализировал ваши транзакции и готов дать совет по оптимизации
-                        расходов в этом месяце.
-                    </p>
-                    <div style="display: flex; gap: 12px; position: relative; z-index: 2;">
-                        <button id="btn-ai-advice" class="btn-tonal" onclick="fetchAiAdvice()"
-                            style="background: var(--md-primary); color: var(--md-on-primary); font-weight: 600; padding: 10px 24px; min-width: 160px; justify-content: center;">
-                            Анализ
-                        </button>
-                        <button class="btn-tonal"
-                            style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: inherit; font-weight: 500;">
-                            Подробнее
-                        </button>
-                    </div>
-                    <!-- Декоративное пятно света (как на макете) -->
-                    <div
-                        style="position: absolute; right: -50px; bottom: -50px; width: 250px; height: 250px; background: var(--md-primary); opacity: 0.4; filter: blur(60px); border-radius: 50%; z-index: 1;">
-                    </div>
-                </div>
-
-                <!-- Правая средняя карточка (Аналог Monthly Revenue) -->
-                <div class="b-card card-balance">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                        <div
-                            style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; opacity: 0.7; letter-spacing: 1px;">
-                            Текущий баланс</div>
-                        <div
-                            style="background: rgba(74, 222, 128, 0.1); color: #4ade80; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
-                            В этом месяце</div>
-                    </div>
-                    <div style="font-size: 2.8rem; font-weight: 700; margin-bottom: 24px; color: var(--md-on-surface);">
-                        {{ balance|floatformat:2 }} ₸</div>
-
-                    <div
-                        style="display: flex; gap: 24px; padding-top: 16px; border-top: 1px solid var(--md-outline-variant);">
-                        <div style="flex: 1;">
-                            <div
-                                style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; opacity: 0.7; margin-bottom: 4px; text-transform: uppercase;">
-                                <span style="color: #4ade80;">●</span> Доходы
-                            </div>
-                            <div style="font-size: 1.1rem; font-weight: 600;">{{ income|floatformat:0 }} ₸</div>
-                        </div>
-                        <div style="flex: 1;">
-                            <div
-                                style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; opacity: 0.7; margin-bottom: 4px; text-transform: uppercase;">
-                                <span style="color: #f87171;">●</span> Расходы
-                            </div>
-                            <div style="font-size: 1.1rem; font-weight: 600;">{{ expense|floatformat:0 }} ₸</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Нижняя левая карточка (Аналог Projects list) -->
-                <div class="b-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+                <div class="b-card"
+                    style="padding: 0; overflow: hidden; display: flex; flex-direction: column; grid-column: span 2;">
                     <div
                         style="padding: 24px; border-bottom: 1px solid var(--md-outline-variant); display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-weight: 600; font-size: 1.1rem;">Последние транзакции</div>
+                        <div style="font-weight: 600; font-size: 1.1rem;">Все транзакции</div>
 
                         <div style="display: flex; gap: 12px; align-items: center;">
                             <select id="category-filter" class="md-select" style="padding: 6px 36px 6px 12px; font-size: 0.8rem; border-radius: 20px;">
@@ -291,36 +225,43 @@
                                 style="background: var(--md-surface-variant); padding: 4px; border-radius: 20px; display: flex; align-items: center;">
                                 <a href="?month={{ prev_month }}&year={{ prev_year }}&category={{ current_category }}"
                                     class="btn-icon"
-                                    style="width: 24px; height: 24px; font-size: 0.7rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">◀</a>
-                                <div class="month-label" id="month-label-list"
-                                    style="font-size: 0.85rem; padding: 0 8px; font-weight: 500;">{{ month_display }}
+                                    style="width: 28px; height: 28px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">◀</a>
+                                <div class="month-label" id="month-label"
+                                    style="font-size: 0.95rem; padding: 0 12px; font-weight: 500;">{{ month_display }}
                                 </div>
                                 <a href="?month={{ next_month }}&year={{ next_year }}&category={{ current_category }}"
                                     class="btn-icon"
-                                    style="width: 24px; height: 24px; font-size: 0.7rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">▶</a>
+                                    style="width: 28px; height: 28px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">▶</a>
                             </div>
+                        </div>
 
+                        <div style="display: flex; gap: 8px;">
                             <a href="{% url 'upload' %}"
-                                style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: var(--md-primary); text-decoration: none; color: var(--md-on-primary); font-size: 1.2rem; font-weight: 100;">+</a>
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: var(--md-primary); text-decoration: none; color: var(--md-on-primary); font-size: 1.4rem; font-weight: 100;"
+                                title="Добавить чек">+</a>
                         </div>
                     </div>
 
-                    <div class="tx-scroll-area">
+                    <div class="tx-scroll-area" style="max-height: calc(100vh - 250px);">
                         <form id="export-form" action="{% url 'export' %}" method="POST" style="margin: 0;">
                             {% csrf_token %}
-                            <table class="tx-table" style="border: none; border-radius: 0; box-shadow: none;">
+                            <table class="tx-table"
+                                style="border: none; border-radius: 0; box-shadow: none; width: 100%;">
                                 <thead style="background: transparent;">
                                     <tr>
                                         <th><input type="checkbox" id="select-all" class="md-checkbox"></th>
                                         <th style="opacity: 0.6; font-size: 0.8rem; text-transform: uppercase;">Событие
                                         </th>
                                         <th
+                                            style="opacity: 0.6; font-size: 0.8rem; text-transform: uppercase; text-align: center;">
+                                            Тип</th>
+                                        <th
                                             style="padding-right: 24px; text-align: right; opacity: 0.6; font-size: 0.8rem; text-transform: uppercase;">
                                             Сумма</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for t in transactions|slice:":6" %}
+                                    {% for t in transactions %}
                                     <tr>
                                         <td><input type="checkbox" name="transaction_ids" value="{{ t.id }}"
                                                 class="md-checkbox transaction-checkbox"></td>
@@ -336,7 +277,7 @@
                                                         {{ t.merchant }}
                                                         {% if t.items.exists %}
                                                         <button type="button"
-                                                            style="background: none; border: none; cursor: pointer; color: var(--md-primary); padding: 0;"
+                                                            style="background: none; border: none; cursor: pointer; color: var(--md-primary); padding: 0; font-size: 1.1rem;"
                                                             data-tx-id="{{ t.id }}"
                                                             data-source-url="{% if t.source_file %}{{ t.source_file.url }}{% else %}{% endif %}"
                                                             data-items="{% for item in t.items.all %}{{ item.id }}|{{ item.name|escapejs }}|{{ item.price|stringformat:'.2f' }}|{{ item.quantity }}{% if not forloop.last %}||{% endif %}{% endfor %}"
@@ -351,23 +292,29 @@
                                                 </div>
                                             </div>
                                         </td>
+                                        <td style="text-align: center;">
+                                            {% if t.transaction_type == 'income' %}
+                                            <div
+                                                style="display: inline-block; padding: 4px 12px; background: rgba(74, 222, 128, 0.1); color: #4ade80; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
+                                                Пополнение</div>
+                                            {% else %}
+                                            <div
+                                                style="display: inline-block; padding: 4px 12px; background: var(--md-surface-variant); opacity: 0.8; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
+                                                Списание</div>
+                                            {% endif %}
+                                        </td>
                                         <td style="padding-right: 24px; text-align: right;">
-                                            <div style="font-weight: 600; font-size: 1.05rem;"
+                                            <div style="font-weight: 600; font-size: 1.15rem;"
                                                 class="{% if t.transaction_type == 'expense' %}amount-expense{% else %}amount-income{% endif %}">
                                                 {% if t.transaction_type == 'expense' %}−{% else %}+{% endif %}{{ t.amount }}
                                             </div>
-                                            {% if t.transaction_type == 'income' %}
-                                            <div style="font-size: 0.75rem; color: #4ade80;">Пополнение</div>
-                                            {% else %}
-                                            <div style="font-size: 0.75rem; opacity: 0.5;">Списание</div>
-                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="3" style="text-align: center; padding: 32px; opacity: 0.6;">
-                                            <div style="font-size: 2rem; margin-bottom: 8px;">📭</div>
-                                            Нет транзакций
+                                        <td colspan="4" style="text-align: center; padding: 48px; opacity: 0.6;">
+                                            <div style="font-size: 3rem; margin-bottom: 12px;">📭</div>
+                                            Нет транзакций за этот период
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -377,62 +324,21 @@
                     </div>
                     <!-- Action bottom like on the mockup button -->
                     <div
-                        style="padding: 16px 24px; border-top: 1px solid var(--md-outline-variant); background: var(--md-surface); display: flex; gap: 12px;">
+                        style="padding: 16px 24px; border-top: 1px solid var(--md-outline-variant); background: var(--md-surface); display: flex; justify-content: flex-end;">
                         <button type="submit" form="export-form" id="export-btn" class="btn-tonal btn-tonal--export"
-                            style="flex: 1; justify-content: center; background: var(--md-primary); color: var(--md-on-primary);"
+                            style="background: var(--md-primary); color: var(--md-on-primary); min-width: 200px; justify-content: center;"
                             disabled>
-                            Экспорт
+                            📥 Экспорт выбранных
                         </button>
-                        <a href="{% url 'transactions' %}" class="btn-tonal"
-                            style="flex: 1; justify-content: center; text-decoration: none; text-align: center; background: var(--md-surface-variant);">
-                            Все данные
-                        </a>
                     </div>
                 </div>
-
-                <!-- Правая нижняя карточка (Аналог Traffic Sources chart) -->
-                <div class="b-card chart-card" style="margin: 0; box-shadow: none;">
-                    <div class="chart-card__header" style="margin-bottom: 24px;">
-                        <div class="chart-card__title">Источники расходов</div>
-                        <div class="month-controls"
-                            style="background: var(--md-surface-variant); padding: 4px; border-radius: 20px;">
-                            <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn-icon"
-                                style="width: 24px; height: 24px; font-size: 0.7rem;">◀</a>
-                            <div class="month-label" id="month-label"
-                                style="font-size: 0.85rem; padding: 0 8px; font-weight: 500;">{{ month_display }}</div>
-                            <a href="?month={{ next_month }}&year={{ next_year }}" class="btn-icon"
-                                style="width: 24px; height: 24px; font-size: 0.7rem;">▶</a>
-                        </div>
-                    </div>
-
-                    <div class="chart-view-wrapper" style="min-height: 250px; flex: 1; align-items: center;">
-                        {% if chart_values %}
-                        <canvas id="categoryChart"></canvas>
-                        {% else %}
-                        <div class="empty-state" style="margin: 0;">
-                            <div class="empty-state__icon">📊</div>
-                            <div class="empty-state__text">Нет данных за этот месяц</div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Дополнительная карточка (Аналог Add new widget пунктиром) -->
-                <div class="b-card"
-                    style="border: 2px dashed var(--md-outline-variant); background: transparent; align-items: center; justify-content: center; min-height: 150px; cursor: pointer; grid-column: span 2; box-shadow: none; opacity: 0.7; transition: all 0.2s;">
-                    <div
-                        style="font-size: 1.5rem; margin-bottom: 12px; color: var(--md-primary); width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--md-primary); display: flex; align-items: center; justify-content: center;">
-                        +</div>
-                    <div style="font-weight: 600; font-size: 1.1rem;">ДОБАВИТЬ ВИДЖЕТ</div>
-                    <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 4px;">Настройте дашборд под свои нужды
-                    </div>
-                </div>
-
             </div>
         </main>
     </div>
 
     <!-- ============================================================
+
+<!-- ============================================================
     MODAL OVERLAY
     ============================================================ -->
     <div class="modal-overlay" id="receiptModal" onclick="closeReceiptModal(event)">
@@ -450,8 +356,6 @@
     <!-- ============================================================
     JAVASCRIPT
     ============================================================ -->
-    {{ chart_labels|json_script:"chart-labels" }}
-    {{ chart_values|json_script:"chart-values" }}
     <script>
         /* ── THEME TOGGLE ─────────────────────────────────────────── */
         const root = document.documentElement;
@@ -546,7 +450,7 @@
                 textEl.textContent = 'Ошибка соединения с сервером.';
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Анализ';
+                btn.textContent = 'Получить совет от ИИ';
             }
         }
 
@@ -682,69 +586,63 @@
         })();
 
         /* ── CATEGORY CHART (Chart.js) ───────────────────────────── */
+        {% if chart_values %}
         (function initChart() {
-            const labelsEl = document.getElementById('chart-labels');
-            const valuesEl = document.getElementById('chart-values');
-            if (!labelsEl || !valuesEl) return;
-
-            const chartLabels = JSON.parse(labelsEl.textContent);
-            const chartValues = JSON.parse(valuesEl.textContent);
-            if (!chartValues || chartValues.length === 0) return;
-
             const ctx = document.getElementById('categoryChart').getContext('2d');
             const palette = ['#6750A4', '#5E7B6A', '#B3261E', '#7D5260', '#9A82DB', '#006A6A', '#938F99'];
 
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: chartLabels,
-                    datasets: [{
-                        data: chartValues,
-                        backgroundColor: palette,
-                        borderWidth: 0,
-                        hoverOffset: 15,
-                        borderRadius: 8,
-                        spacing: 8
+                    labels: {{ chart_labels| safe }},
+        datasets: [{
+            data: {{ chart_values| safe }},
+            backgroundColor: palette,
+            borderWidth: 0,
+            hoverOffset: 15,
+            borderRadius: 8,
+            spacing: 8
                     }]
                 },
-                options: {
-                    layout: {
-                        padding: 24
-                    },
-                    responsive: true,
-                    maintainAspectRatio: false,
+        options: {
+            layout: {
+                padding: 24
+            },
+            responsive: true,
+                maintainAspectRatio: false,
                     cutout: '84%',
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true,
+                        plugins: {
+                legend: {
+                    position: 'right',
+                        labels: {
+                        padding: 20,
+                            usePointStyle: true,
                                 font: { family: "'Inter', sans-serif", size: 12, weight: '600' },
-                                color: getComputedStyle(document.documentElement).getPropertyValue('--md-on-surface')
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(28, 27, 31, 0.95)',
-                            padding: 12,
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--md-on-surface')
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(28, 27, 31, 0.95)',
+                        padding: 12,
                             cornerRadius: 12,
-                            callbacks: {
-                                label: function (context) {
-                                    let val = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT' }).format(context.parsed);
-                                    return ` ${context.label}: ${val}`;
-                                }
-                            }
+                                callbacks: {
+                        label: function(context) {
+                            let val = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT' }).format(context.parsed);
+                            return ` ${context.label}: ${val}`;
                         }
-                    },
-                    animation: {
-                        animateScale: true,
-                        animateRotate: true,
-                        duration: 1000,
-                        easing: 'easeOutQuad'
                     }
                 }
+            },
+            animation: {
+                animateScale: true,
+                    animateRotate: true,
+                        duration: 1000,
+                            easing: 'easeOutQuad'
+            }
+        }
             });
-        })();
+        }) ();
+        {% endif %}
 
         (function translateMonth() {
             const monthMap = {
@@ -767,9 +665,10 @@
         /* ── CATEGORY FILTER ───────────────────────────────────────── */
         const categoryFilter = document.getElementById('category-filter');
         if (categoryFilter) {
-            categoryFilter.addEventListener('change', function() {
+            categoryFilter.addEventListener('change', function () {
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.set('category', this.value);
+                // Keep month and year if they exist
                 window.location.search = urlParams.toString();
             });
         }

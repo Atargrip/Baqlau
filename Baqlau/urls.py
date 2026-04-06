@@ -3,7 +3,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from finance.views import dashboard, upload_file, export_transactions, register, edit_receipt_item, get_ai_advice
+from finance.views import dashboard, upload_file, export_transactions, register, edit_receipt_item, get_ai_advice, all_transactions, ai_chatbot_page, api_chat_message
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -15,6 +15,9 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('edit-item/<int:item_id>/', edit_receipt_item, name='edit_receipt_item'),
     path('ai-advice/', get_ai_advice, name='ai_advice'),
+    path('transactions/', all_transactions, name='transactions'),
+    path('chatbot/', ai_chatbot_page, name='chatbot'),
+    path('api/chat/', api_chat_message, name='api_chat'),
 ]
 
 if settings.DEBUG:

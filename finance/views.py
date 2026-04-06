@@ -136,8 +136,16 @@ def dashboard(request):
         chart_bg_colors.append(chart_colors.get(cat, '#C9CBCF'))
 
     # 5. Transactions for table (maybe filtered by month too? Usually better)
-    # Let's show all latest for now but we can filter if needed. The user didn't specify table filtering.
-    table_transactions = list(user_transactions.order_by('-date', '-created_at'))
+    category = request.GET.get('category', 'all')
+    table_transactions_qs = user_transactions.filter(
+        date__month=month,
+        date__year=year
+    )
+    
+    if category != 'all':
+        table_transactions_qs = table_transactions_qs.filter(category=category)
+        
+    table_transactions = list(table_transactions_qs.order_by('-date', '-created_at'))
     for t in table_transactions:
         t.chip_class, t.chip_label = get_category_chip(t)
 
@@ -157,9 +165,59 @@ def dashboard(request):
         'prev_year': prev_year,
         'next_month': next_month,
         'next_year': next_year,
-        'month_display': month_name  # We can translate this in template
+        'month_display': month_name,
+        'categories': Transaction.CATEGORY_CHOICES,
+        'current_category': category,
     }
     return render(request, 'finance/dashboard.html', context)
+
+@login_required
+def all_transactions(request):
+    today = date.today()
+    month = int(request.GET.get('month', today.month))
+    year = int(request.GET.get('year', today.year))
+    category = request.GET.get('category', 'all')
+
+    if month == 1:
+        prev_month, prev_year = 12, year - 1
+    else:
+        prev_month, prev_year = month - 1, year
+
+    if month == 12:
+        next_month, next_year = 1, year + 1
+    else:
+        next_month, next_year = month + 1, year
+
+    selected_date = date(year, month, 1)
+    month_name = selected_date.strftime("%B %Y")
+
+    transactions_qs = Transaction.objects.filter(
+        user=request.user,
+        date__month=month,
+        date__year=year
+    )
+
+    if category != 'all':
+        transactions_qs = transactions_qs.filter(category=category)
+
+    transactions = transactions_qs.order_by('-date', '-created_at')
+    
+    for t in transactions:
+        t.chip_class, t.chip_label = get_category_chip(t)
+
+    context = {
+        'transactions': transactions,
+        'current_month': month,
+        'current_year': year,
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
+        'month_display': month_name,
+        'categories': Transaction.CATEGORY_CHOICES,
+        'current_category': category,
+    }
+    return render(request, 'finance/transactions.html', context)
 
 
 @login_required
@@ -296,10 +354,105 @@ def get_ai_advice(request):
     try:
         client = genai.Client()
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.5-flash',
             contents=prompt,
         )
         return JsonResponse({"advice": response.text.strip()})
     except Exception as e:
-        return JsonResponse({"advice": "Не удалось получить совет от ИИ на данный момент. Попробуйте позже."})
+        return JsonResponse({"advice": f"Не удалось получить совет от ИИ: {e}"})
 
+
+@login_required
+def ai_chatbot_page(request):
+    today = date.today()
+    month = int(request.GET.get('month', today.month))
+    year = int(request.GET.get('year', today.year))
+
+    if month == 1:
+        prev_month, prev_year = 12, year - 1
+    else:
+        prev_month, prev_year = month - 1, year
+
+    if month == 12:
+        next_month, next_year = 1, year + 1
+    else:
+        next_month, next_year = month + 1, year
+
+    mapping_ru = {
+        1: 'Январь', 2: 'Февраль', 3: 'Март', 4: 'Апрель',
+        5: 'Май', 6: 'Июнь', 7: 'Июль', 8: 'Август',
+        9: 'Сентябрь', 10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь'
+    }
+    rus_month_name = f"{mapping_ru.get(month, '')} {year}"
+
+    context = {
+        'current_month': month,
+        'current_year': year,
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
+        'month_display': rus_month_name
+    }
+    return render(request, 'finance/chatbot.html', context)
+
+
+@login_required
+@require_POST
+def api_chat_message(request):
+    try:
+        data = json.loads(request.body)
+        user_message = data.get('message', '')
+        month = int(data.get('month', date.today().month))
+        year = int(data.get('year', date.today().year))
+        history = data.get('history', [])
+
+        # Limit history to last 6 messages to save tokens
+        history = history[-6:]
+        
+        # Get user's expenses for that month
+        expenses = Transaction.objects.filter(
+            user=request.user,
+            transaction_type='expense',
+            date__month=month,
+            date__year=year
+        ).values('category').annotate(total=Sum('amount'))
+        
+        mapping = {
+            'food': 'Еда',
+            'transport': 'Транспорт',
+            'shopping': 'Покупки',
+            'health': 'Здоровье',
+            'entertainment': 'Развлечения',
+            'salary': 'Зарплата',
+            'utilities': 'Услуги',
+            'other': 'Другое'
+        }
+        
+        summary_lines = []
+        for exp in expenses:
+            cat_name = mapping.get(exp['category'], 'Другое')
+            summary_lines.append(f"- {cat_name}: {exp['total']} тг")
+            
+        summary_text = "\n".join(summary_lines)
+        if not summary_text:
+            summary_text = "Нет данных о расходах."
+
+        prompt = f"Ты умный и полезный финансовый помощник Baqlau AI. Твоя задача — помогать пользователю анализировать его траты и давать советы. Отвечай кратко, дружелюбно и по делу.\n\nДанные пользователя по расходам за выбранный месяц:\n{summary_text}\n\n"
+        
+        if history:
+            prompt += "История недавнего диалога:\n"
+            for msg in history:
+                role = "Пользователь" if msg.get("role") == "user" else "Baqlau AI"
+                prompt += f"{role}: {msg.get('text')}\n"
+        
+        prompt += f"\nПользователь сейчас: {user_message}\nBaqlau AI:"
+        
+        client = genai.Client()
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+        )
+        return JsonResponse({"response": response.text.strip()})
+    except Exception as e:
+        return JsonResponse({"error": f"Ошибка AI сервиса: {str(e)}"}, status=500)

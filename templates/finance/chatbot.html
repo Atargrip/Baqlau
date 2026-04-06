@@ -1,0 +1,793 @@
+{% csrf_token %}
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>baqlau — Финансовый Дашборд</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=4">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- ============================================================
+    NAVBAR
+    ============================================================ -->
+    <nav class="navbar">
+        <a href="#" class="navbar__logo">
+            🏦 <span>baqlau</span>
+        </a>
+        <div class="navbar__right">
+            <!-- Streak (gamification) -->
+            <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
+                <span class="streak-badge__emoji">🔥</span>
+                <span id="streak-count">7</span> дней
+            </div>
+
+            <!-- Theme toggle -->
+            <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
+                <span id="theme-icon">🌙</span>
+            </button>
+
+            <!-- User avatar & Logout -->
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
+                <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-link"
+                        style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
+                    </button>
+                </form>
+                <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
+                    {{user.username|slice:":1"|upper}}</div>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- ============================================================
+    MAIN CONTENT
+    ============================================================ -->
+    <style>
+        /* Styling to match the Aura dashboard reference */
+        .dashboard-layout {
+            display: flex;
+            gap: 48px;
+            padding: 32px 40px;
+            align-items: flex-start;
+            max-width: 1600px;
+        }
+
+        .sidebar-tabs {
+            width: 200px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: sticky;
+            top: 24px;
+        }
+
+        .tab-btn {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: none;
+            background: transparent;
+            color: var(--md-on-surface-variant, #666);
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .tab-btn:hover {
+            background: var(--md-surface-variant, #eaeaea);
+        }
+
+        .tab-btn.active {
+            background: var(--md-primary-container, #eaddff);
+            color: var(--md-on-primary-container, #21005d);
+            font-weight: 600;
+        }
+
+        /* Used grid to position elements like the UI mockup */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 24px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .b-card {
+            background: var(--md-surface, #fff);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+        }
+
+        [data-theme="dark"] .b-card {
+            background: #1C1C24;
+            /* Referencing deep dark theme of the design */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-ai {
+            background: linear-gradient(135deg, var(--md-primary-container), var(--md-primary));
+            color: var(--md-on-primary-container);
+        }
+
+        [data-theme="dark"] .card-ai {
+            background: linear-gradient(135deg, #1A2735, #14353E);
+            color: #fff;
+        }
+
+        .card-balance {
+            justify-content: center;
+        }
+
+        .tx-scroll-area {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        /* Specific table fixes for the tighter card layout */
+        .dashboard-layout .tx-table th,
+        .dashboard-layout .tx-table td {
+            padding: 12px 16px;
+        }
+
+        .dashboard-layout .tx-table th:first-child,
+        .dashboard-layout .tx-table td:first-child {
+            padding-left: 24px;
+        }
+
+        .dashboard-layout .tx-table th:last-child,
+        .dashboard-layout .tx-table td:last-child {
+            padding-right: 24px;
+        }
+
+        /* ── CHAT ANIMATIONS ─────────────────────────────────────── */
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-anim {
+            animation: messageAppear 0.3s ease forwards;
+        }
+
+        /* ── TYPING INDICATOR ANIMATION ──────────────────────────── */
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--md-primary);
+            border-radius: 50%;
+            display: inline-block;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1.0);
+            }
+        }
+    </style>
+
+    <div class="dashboard-layout">
+        <!-- Сегментированный контроль (Tab Bar) слева под хедером на будущее -->
+        <aside class="sidebar-tabs">
+            <div
+                style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--md-on-surface-variant); margin-bottom: 8px; margin-left: 16px;">
+                Меню</div>
+
+            <a href="{% url 'dashboard' %}" class="tab-btn" style="text-decoration: none;">
+                <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📊</span> Дашборд
+            </a>
+            <!-- <button class="tab-btn">
+                <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📁</span> Проекты
+            </button> -->
+            <a href="{% url 'transactions' %}" class="tab-btn" style="text-decoration: none;">
+                <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📈</span> Транзакции
+            </a>
+            <a class="tab-btn active" style="text-decoration: none;">
+                <span style="font-size: 1.1rem; width: 24px; display: inline-block;">🤖</span> AI Помощник
+            </a>
+
+            <div style="height: 16px;"></div>
+
+            <!-- Кнопка добавления для будущего -->
+            <button class="tab-btn"
+                style="border: 1px dashed var(--md-outline); opacity: 0.7; justify-content: center;">
+                <span style="font-size: 1.2rem; margin-right: 4px;">+</span> Добавить
+            </button>
+
+            <!-- Заглушка для хелпа (как на макете в левом нижнем углу меню) -->
+            <div
+                style="margin-top: 32px; padding: 16px; border-radius: 16px; background: var(--md-surface-container); font-size: 0.85rem; text-align: center;">
+                <div style="font-size: 1.5rem; margin-bottom: 8px; color: var(--md-primary);">ℹ️</div>
+                <div style="font-weight: 600; margin-bottom: 4px;">Нужна помощь?</div>
+                <div style="opacity: 0.7; margin-bottom: 12px; font-size: 0.75rem;">Загляните в документацию</div>
+                <button class="btn-tonal"
+                    style="width: 100%; justify-content: center; padding: 6px; font-size: 0.8rem; background: var(--md-surface); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Документация</button>
+            </div>
+        </aside>
+
+        <main class="main-content" style="flex: 1; padding: 0; max-width: none; margin: 0;">
+            <div class="page-title" style="margin-bottom: 24px; margin-top: 0;">
+                ИИ Помощник
+                <small>Анализ ваших трат в реальном времени</small>
+            </div>
+
+            <!-- Сетка карточек по аналогии с макетом (2 колонки) -->
+            <div class="dashboard-grid">
+
+                <div class="b-card"
+                    style="padding: 0; overflow: hidden; display: flex; flex-direction: column; grid-column: span 2; height: 75vh;">
+                    <!-- Header -->
+                    <div
+                        style="padding: 16px 24px; border-bottom: 1px solid var(--md-outline-variant); display: flex; justify-content: space-between; align-items: center; background: var(--md-surface-variant);">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--md-primary) 0%, #a855f7 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">
+                                ✨</div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 1.1rem;">Baqlau AI</div>
+                                <div style="font-size: 0.8rem; opacity: 0.7;">Персональный финансовый советник</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="month-controls"
+                                style="background: var(--md-surface); padding: 4px; border-radius: 20px; display: flex; align-items: center;">
+                                <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn-icon"
+                                    style="width: 28px; height: 28px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">◀</a>
+                                <div class="month-label" id="month-label"
+                                    style="font-size: 0.95rem; padding: 0 12px; font-weight: 500;">{{ month_display }}
+                                </div>
+                                <a href="?month={{ next_month }}&year={{ next_year }}" class="btn-icon"
+                                    style="width: 28px; height: 28px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">▶</a>
+                            </div>
+                            <button onclick="clearChat()" class="btn-tonal"
+                                style="padding: 6px 12px; font-size: 0.8rem; background: var(--md-surface-variant); border-radius: 20px; border: 1px solid var(--md-outline-variant);">
+                                🗑️ Очистить
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat Area -->
+                    <div id="chat-messages"
+                        style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; background: var(--md-surface);">
+
+                        <div class="message-bot message-anim" style="display: flex; gap: 12px; max-width: 80%;">
+                            <div
+                                style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--md-primary) 0%, #a855f7 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; flex-shrink: 0; box-shadow: 0 2px 8px rgba(121, 101, 175, 0.3);">
+                                ✨</div>
+                            <div
+                                style="background: var(--md-surface-container-high); color: var(--md-on-surface); padding: 14px 18px; border-radius: 0 20px 20px 20px; font-size: 0.95rem; line-height: 1.6; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--md-outline-variant);">
+                                Привет! Я ваш ИИ-помощник. Я вижу ваши траты за <b>{{ month_display }}</b>. Чем я могу
+                                помочь? Например, вы можете спросить, на что уходит больше всего денег, или как можно
+                                сэкономить в этом месяце.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Input Area -->
+                    <div
+                        style="padding: 16px 24px; border-top: 1px solid var(--md-outline-variant); background: var(--md-surface); display: flex; gap: 12px; align-items: center;">
+                        <input type="text" id="chat-input" placeholder="Напишите сообщение..."
+                            style="flex: 1; padding: 12px 16px; border-radius: 24px; border: 1px solid var(--md-outline-variant); background: var(--md-surface-variant); color: var(--md-on-surface); font-size: 1rem; outline: none;"
+                            onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button onclick="sendMessage()" id="send-btn"
+                            style="width: 44px; height: 44px; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); border: none; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;">
+                            ➤
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ============================================================
+    MODAL OVERLAY
+    ============================================================ -->
+                <div class="modal-overlay" id="receiptModal" onclick="closeReceiptModal(event)">
+                    <div class="modal-container" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <div class="modal-title">Детали чека</div>
+                            <button type="button" class="modal-close" onclick="closeReceiptModal()">&times;</button>
+                        </div>
+                        <div class="modal-body" id="modal-body-content">
+                            <!-- Content injected via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+                <script>
+                    /* ── THEME TOGGLE ─────────────────────────────────────────── */
+                    const root = document.documentElement;
+                    const themeToggle = document.getElementById('theme-toggle');
+                    const themeIcon = document.getElementById('theme-icon');
+
+                    function applyTheme(theme) {
+                        root.setAttribute('data-theme', theme);
+                        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+                        localStorage.setItem('baqlau-theme', theme);
+                    }
+
+                    (function initTheme() {
+                        const saved = localStorage.getItem('baqlau-theme');
+                        if (saved) {
+                            applyTheme(saved);
+                        } else {
+                            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                            applyTheme(prefersDark ? 'dark' : 'light');
+                        }
+                    })();
+
+                    themeToggle.addEventListener('click', function () {
+                        const current = root.getAttribute('data-theme');
+                        applyTheme(current === 'dark' ? 'light' : 'dark');
+                    });
+
+                    /* ── CHECKBOX LOGIC ───────────────────────────────────────── */
+                    const selectAll = document.getElementById('select-all');
+                    const checkboxes = document.querySelectorAll('.transaction-checkbox');
+                    const exportBtn = document.getElementById('export-btn');
+
+                    function updateExportButton() {
+                        const checkedCount = document.querySelectorAll('.transaction-checkbox:checked').length;
+                        exportBtn.disabled = checkedCount === 0;
+                        if (checkedCount > 0) {
+                            exportBtn.textContent = `📥 Экспорт (${checkedCount})`;
+                            exportBtn.classList.add('active');
+                        } else {
+                            exportBtn.textContent = `📥 Экспорт выбранных`;
+                            exportBtn.classList.remove('active');
+                        }
+                    }
+
+                    function updateRowHighlight(checkbox) {
+                        const row = checkbox.closest('tr');
+                        if (row) row.classList.toggle('row-selected', checkbox.checked);
+                    }
+
+                    if (selectAll) {
+                        selectAll.addEventListener('change', function () {
+                            checkboxes.forEach(cb => {
+                                cb.checked = selectAll.checked;
+                                updateRowHighlight(cb);
+                            });
+                            updateExportButton();
+                        });
+                    }
+
+                    checkboxes.forEach(cb => {
+                        cb.addEventListener('change', function () {
+                            updateRowHighlight(this);
+                            updateExportButton();
+                            const allChecked = document.querySelectorAll('.transaction-checkbox:checked').length === checkboxes.length;
+                            const anyChecked = document.querySelectorAll('.transaction-checkbox:checked').length > 0;
+                            if (selectAll) {
+                                selectAll.checked = allChecked;
+                                selectAll.indeterminate = anyChecked && !allChecked;
+                            }
+                        });
+                    });
+
+                    /* ── FETCH AI ADVICE ───────────────────────────────────────── */
+                    async function fetchAiAdvice() {
+                        const btn = document.getElementById('btn-ai-advice');
+                        const textEl = document.getElementById('ai-advice-text');
+
+                        btn.disabled = true;
+                        btn.textContent = 'Анализируем...';
+                        textEl.innerHTML = '<span style="opacity: 0.7;">Отправляем данные в Gemini API, подождите...</span>';
+
+                        try {
+                            const response = await fetch('{% url "ai_advice" %}');
+                            const data = await response.json();
+
+                            if (data.advice) {
+                                textEl.textContent = data.advice;
+                            } else {
+                                textEl.textContent = 'Не удалось получить совет.';
+                            }
+                        } catch (err) {
+                            textEl.textContent = 'Ошибка соединения с сервером.';
+                        } finally {
+                            btn.disabled = false;
+                            btn.textContent = 'Анализ';
+                        }
+                    }
+
+                    /* ── RECEIPT DETAILS & EDIT ITEM ───────────────────────────── */
+                    function openReceiptModal(btn) {
+                        const modal = document.getElementById('receiptModal');
+                        const content = document.getElementById('modal-body-content');
+
+                        const rawData = btn.getAttribute('data-items');
+                        const sourceUrl = btn.getAttribute('data-source-url');
+
+                        let html = `
+                <div style="margin-bottom: 20px;">
+                    ${sourceUrl ? `
+                    <div style="margin-bottom: 16px;">
+                        <a href="${sourceUrl}" target="_blank" class="btn-tonal btn-tonal--secondary">Скачать изображение чека</a>
+                    </div>
+                    ` : ''}
+                    <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 12px; color: var(--md-on-surface);">Товары в чеке:</div>
+            `;
+
+                        if (rawData) {
+                            const items = rawData.split('||').filter(x => x.trim().length > 0);
+
+                            html += `
+                    <table class="tx-table" style="background: var(--md-surface); border-radius: 8px; overflow: hidden; border: 1px solid var(--md-outline-variant);">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Цена</th>
+                                <th>Кол-во</th>
+                                <th>Действие</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                            items.forEach(itemStr => {
+                                const parts = itemStr.split('|');
+                                if (parts.length < 4) return;
+
+                                const [id, name, price, qty] = parts;
+                                html += `
+                        <tr>
+                            <td><input type="text" id="itemName-${id}" value="${name.replace(/"/g, '&quot;')}" class="md-input" style="padding: 8px; width: 100%; min-width: 300px;"></td>
+                            <td><input type="number" id="itemPrice-${id}" value="${price}" class="md-input" style="padding: 8px; width: 100px;" step="0.01"></td>
+                            <td><input type="number" id="itemQty-${id}" value="${qty}" class="md-input" style="padding: 8px; width: 70px;" step="0.1"></td>
+                            <td>
+                                <button type="button" onclick="saveReceiptItem(${id}, this)" class="btn-tonal btn-tonal--secondary" style="padding: 6px 14px; font-size: 0.85rem;">Сохранить</button>
+                            </td>
+                        </tr>
+                    `;
+                            });
+
+                            html += `
+                        </tbody>
+                    </table>
+                `;
+                        } else {
+                            html += `<p style="color: var(--md-outline-variant);">Товары не найдены.</p>`;
+                        }
+
+                        html += `</div>`;
+                        content.innerHTML = html;
+                        modal.classList.add('active');
+                    }
+
+                    function closeReceiptModal(event) {
+                        if (event && event.target !== document.getElementById('receiptModal') && event.type !== 'click') {
+                            return;
+                        }
+                        const modal = document.getElementById('receiptModal');
+                        modal.classList.remove('active');
+                    }
+
+                    async function saveReceiptItem(itemId, btnElement) {
+                        const name = document.getElementById(`itemName-${itemId}`).value;
+                        const price = document.getElementById(`itemPrice-${itemId}`).value;
+                        const quantity = document.getElementById(`itemQty-${itemId}`).value;
+
+                        const originalText = btnElement.textContent;
+                        btnElement.textContent = '...';
+                        btnElement.disabled = true;
+
+                        try {
+                            const response = await fetch(`/edit-item/${itemId}/`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                },
+                                body: JSON.stringify({
+                                    name: name,
+                                    price: price,
+                                    quantity: quantity
+                                })
+                            });
+
+                            const data = await response.json();
+                            if (data.status === 'success') {
+                                btnElement.textContent = '✓';
+                                setTimeout(() => { btnElement.textContent = originalText; btnElement.disabled = false; }, 1500);
+                            } else {
+                                alert('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
+                                btnElement.textContent = originalText;
+                                btnElement.disabled = false;
+                            }
+                        } catch (err) {
+                            alert('Ошибка соединения при сохранении');
+                            btnElement.textContent = originalText;
+                            btnElement.disabled = false;
+                        }
+                    }
+
+                    /* ── STREAK COUNTER ──────────────────── */
+                    (function initStreak() {
+                        const today = new Date().toDateString();
+                        const lastVisit = localStorage.getItem('baqlau-last-visit');
+                        let streak = parseInt(localStorage.getItem('baqlau-streak') || '0', 10);
+                        if (lastVisit !== today) {
+                            const yesterday = new Date();
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            if (lastVisit === yesterday.toDateString()) {
+                                streak += 1;
+                            } else {
+                                streak = 1;
+                            }
+                            localStorage.setItem('baqlau-last-visit', today);
+                            localStorage.setItem('baqlau-streak', streak);
+                        }
+                        const el = document.getElementById('streak-count');
+                        if (el) el.textContent = streak;
+                    })();
+
+                    /* ── CATEGORY CHART (Chart.js) ───────────────────────────── */
+                    {% if chart_values %}
+                    (function initChart() {
+                        const ctx = document.getElementById('categoryChart').getContext('2d');
+                        const palette = ['#6750A4', '#5E7B6A', '#B3261E', '#7D5260', '#9A82DB', '#006A6A', '#938F99'];
+
+                        new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: {{ chart_labels| safe }},
+                    datasets: [{
+                        data: {{ chart_values| safe }},
+                        backgroundColor: palette,
+                        borderWidth: 0,
+                        hoverOffset: 15,
+                        borderRadius: 8,
+                        spacing: 8
+                    }]
+                },
+                    options: {
+                        layout: {
+                            padding: 24
+                        },
+                        responsive: true,
+                            maintainAspectRatio: false,
+                                cutout: '84%',
+                                    plugins: {
+                            legend: {
+                                position: 'right',
+                                    labels: {
+                                    padding: 20,
+                                        usePointStyle: true,
+                                            font: { family: "'Inter', sans-serif", size: 12, weight: '600' },
+                                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-on-surface')
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(28, 27, 31, 0.95)',
+                                    padding: 12,
+                                        cornerRadius: 12,
+                                            callbacks: {
+                                    label: function(context) {
+                                        let val = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT' }).format(context.parsed);
+                                        return ` ${context.label}: ${val}`;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            animateScale: true,
+                                animateRotate: true,
+                                    duration: 1000,
+                                        easing: 'easeOutQuad'
+                        }
+                    }
+            });
+        }) ();
+                    {% endif %}
+
+                    (function translateMonth() {
+                        const monthMap = {
+                            'January': 'Январь', 'February': 'Февраль', 'March': 'Март', 'April': 'Апрель',
+                            'May': 'Май', 'June': 'Июнь', 'July': 'Июль', 'August': 'Август',
+                            'September': 'Сентябрь', 'October': 'Октябрь', 'November': 'Ноябрь', 'December': 'Декабрь'
+                        };
+                        const label = document.getElementById('month-label');
+                        if (label) {
+                            let text = label.innerText;
+                            for (let [eng, rus] of Object.entries(monthMap)) {
+                                if (text.includes(eng)) {
+                                    label.innerText = text.replace(eng, rus);
+                                    break;
+                                }
+                            }
+                        }
+                    })();
+                </script>
+
+                <script>
+                    // Chat History storage (local to the page lifecycle)
+                    let chatHistory = [];
+                    const chatMessages = document.getElementById('chat-messages');
+                    const chatInput = document.getElementById('chat-input');
+                    const sendBtn = document.getElementById('send-btn');
+
+                    function scrollToBottom() {
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+
+                    function appendMessage(role, text) {
+                        const msgDiv = document.createElement('div');
+                        msgDiv.style.display = 'flex';
+                        msgDiv.style.gap = '12px';
+                        msgDiv.style.maxWidth = '80%';
+                        msgDiv.style.animation = 'fadeIn 0.3s ease forwards';
+
+                        if (role === 'user') {
+                            msgDiv.style.alignSelf = 'flex-end';
+                            msgDiv.style.flexDirection = 'row-reverse';
+                            msgDiv.className = 'message-anim';
+                            msgDiv.innerHTML = `
+                <div style="background: var(--md-primary); color: var(--md-on-primary); padding: 14px 18px; border-radius: 20px 20px 0 20px; font-size: 0.95rem; line-height: 1.6; box-shadow: 0 4px 12px rgba(121, 101, 175, 0.2);">
+                    ${escapeHtml(text)}
+                </div>
+            `;
+                        } else {
+                            msgDiv.className = 'message-anim';
+                            msgDiv.innerHTML = `
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--md-primary) 0%, #a855f7 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; flex-shrink: 0; box-shadow: 0 2px 8px rgba(121, 101, 175, 0.3);">✨</div>
+                <div style="background: var(--md-surface-container-high); color: var(--md-on-surface); padding: 14px 18px; border-radius: 0 20px 20px 20px; font-size: 0.95rem; line-height: 1.6; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--md-outline-variant);">
+                    ${formatMarkdown(text)}
+                </div>
+            `;
+                        }
+
+                        chatMessages.appendChild(msgDiv);
+                        scrollToBottom();
+                    }
+
+                    function appendTypingIndicator() {
+                        const id = 'typing-' + Date.now();
+                        const msgDiv = document.createElement('div');
+                        msgDiv.id = id;
+                        msgDiv.className = 'message-anim';
+                        msgDiv.style.display = 'flex';
+                        msgDiv.style.gap = '12px';
+                        msgDiv.style.maxWidth = '80%';
+                        msgDiv.innerHTML = `
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--md-primary) 0%, #a855f7 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; flex-shrink: 0;">✨</div>
+            <div style="background: var(--md-surface-container-high); padding: 14px 18px; border-radius: 0 20px 20px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 4px;">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        `;
+                        chatMessages.appendChild(msgDiv);
+                        scrollToBottom();
+                        return id;
+                    }
+
+                    function removeTypingIndicator(id) {
+                        const el = document.getElementById(id);
+                        if (el) el.remove();
+                    }
+
+                    async function sendMessage() {
+                        const text = chatInput.value.trim();
+                        if (!text) return;
+
+                        chatInput.value = '';
+                        chatInput.disabled = true;
+                        sendBtn.disabled = true;
+
+                        appendMessage('user', text);
+                        chatHistory.push({ role: 'user', text: text });
+
+                        const indicatorId = appendTypingIndicator();
+
+                        try {
+                            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+                            const urlParams = new URLSearchParams(window.location.search);
+
+                            const response = await fetch("{% url 'api_chat' %}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": csrfToken
+                                },
+                                body: JSON.stringify({
+                                    message: text,
+                                    month: urlParams.get('month') || '{{ current_month }}',
+                                    year: urlParams.get('year') || '{{ current_year }}',
+                                    history: chatHistory.slice(-6)
+                                })
+                            });
+
+                            removeTypingIndicator(indicatorId);
+
+                            if (!response.ok) {
+                                appendMessage('model', '⚠️ Извините, произошла ошибка сети.');
+                                return;
+                            }
+
+                            const data = await response.json();
+                            if (data.response) {
+                                appendMessage('model', data.response);
+                                chatHistory.push({ role: 'model', text: data.response });
+                            } else if (data.error) {
+                                appendMessage('model', '⚠️ ' + data.error);
+                            }
+
+                        } catch (e) {
+                            removeTypingIndicator(indicatorId);
+                            appendMessage('model', '⚠️ Не удалось связаться с сервером.');
+                        } finally {
+                            chatInput.disabled = false;
+                            sendBtn.disabled = false;
+                            chatInput.focus();
+                        }
+                    }
+
+                    function clearChat() {
+                        if (confirm('Вы уверены, что хотите очистить историю чата?')) {
+                            chatHistory = [];
+                            // Keep only the first welcome message
+                            const welcome = chatMessages.firstElementChild;
+                            chatMessages.innerHTML = '';
+                            if (welcome) chatMessages.appendChild(welcome);
+                        }
+                    }
+
+                    function escapeHtml(unsafe) {
+                        return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    }
+
+                    function formatMarkdown(text) {
+                        let formatted = escapeHtml(text).replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                        formatted = formatted.replace(/\*(.*?)\*/g, '<i>$1</i>');
+                        formatted = formatted.replace(/\n/g, '<br>');
+                        return formatted;
+                    }
+                </script>
+
+</body>
+
+</html>

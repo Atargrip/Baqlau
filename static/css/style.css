@@ -1199,3 +1199,100 @@ body {
 [data-theme="dark"] .md-input {
     background: var(--md-surface-container);
 }
+
+/* ===================================================
+   FILTER CHIPS (MD3 STYLE)
+=================================================== */
+.filter-chips-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    max-width: 600px;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.filter-chips-container::-webkit-scrollbar {
+    display: none;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 18px;
+    border-radius: 20px;
+    background-color: var(--md-surface-container);
+    color: var(--md-on-surface-variant);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    border: 1px solid var(--md-outline-variant);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    user-select: none;
+}
+
+.filter-chip:hover {
+    background-color: var(--md-surface-container-high);
+    border-color: var(--md-outline);
+    transform: translateY(-1px);
+}
+
+.filter-chip.active {
+    background-color: var(--md-primary);
+    color: var(--md-on-primary);
+    border-color: var(--md-primary);
+    box-shadow: 0 4px 12px rgba(121, 101, 175, 0.3);
+}
+
+.filter-chip:active {
+    transform: scale(0.95);
+}
+
+/* ===================================================
+   MATERIAL DESIGN 3 SELECT
+=================================================== */
+.md-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: var(--md-surface-container);
+    color: var(--md-on-surface);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: 12px;
+    padding: 8px 40px 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237965AF'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] .md-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23CCBEFF'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+}
+
+.md-select:hover {
+    background-color: var(--md-surface-container-high);
+    border-color: var(--md-outline);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.md-select:focus {
+    outline: none;
+    border-color: var(--md-primary);
+    box-shadow: 0 0 0 2px var(--md-primary-container);
+}
+
+.md-select option {
+    background-color: var(--md-surface);
+    color: var(--md-on-surface);
+    padding: 8px;
+}
