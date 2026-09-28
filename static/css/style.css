@@ -781,12 +781,37 @@ body {
     border-radius: var(--radius-card-large);
     box-shadow: var(--shadow-card);
     width: 100%;
-    max-width: 480px;
+    max-width: 460px;
     padding: 48px 40px;
     transition: background 0.35s ease, box-shadow 0.25s ease;
     text-align: center;
     position: relative;
     overflow: hidden;
+    box-sizing: border-box;
+    margin: 0 auto;
+}
+
+.upload-card form {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.upload-card .btn-tonal,
+.btn-upload-submit {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .upload-card:hover {
@@ -2148,8 +2173,20 @@ body {
     .auth-card,
     .upload-card {
         padding: 24px 16px !important;
-        margin: 12px;
-        width: calc(100% - 24px);
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .main-content--centered {
+        padding: 16px 12px 80px 12px !important;
+    }
+
+    .btn-upload-submit,
+    .upload-card .btn-tonal {
+        font-size: 0.86rem !important;
+        padding: 11px 12px !important;
     }
 
     .calendar-modal-container {

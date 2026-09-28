@@ -7,7 +7,80 @@
     <title>baqlau — Загрузить документ</title>
     {% load static %}
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=6">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=7">
+    <style>
+        .upload-card {
+            width: 100%;
+            max-width: 440px;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+
+        .upload-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            box-sizing: border-box;
+        }
+
+        .btn-upload-submit {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            white-space: normal !important;
+            word-break: normal !important;
+            overflow-wrap: break-word !important;
+            text-align: center !important;
+            padding: 12px 16px !important;
+            font-size: 0.92rem !important;
+            line-height: 1.35 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+        }
+
+        @media (max-width: 640px) {
+            .main-content--centered {
+                padding: 16px 12px 80px 12px !important;
+            }
+
+            .upload-card {
+                padding: 24px 16px !important;
+                max-width: 100% !important;
+                border-radius: 20px !important;
+            }
+
+            .upload-icon {
+                width: 64px !important;
+                height: 64px !important;
+                line-height: 64px !important;
+                font-size: 2.2rem !important;
+                margin-bottom: 12px !important;
+            }
+
+            .upload-title {
+                font-size: 1.25rem !important;
+                margin-bottom: 6px !important;
+            }
+
+            .upload-subtitle {
+                font-size: 0.8rem !important;
+                margin-bottom: 20px !important;
+            }
+
+            .file-input-label {
+                padding: 12px 14px !important;
+                font-size: 0.85rem !important;
+            }
+
+            .btn-upload-submit {
+                font-size: 0.86rem !important;
+                padding: 11px 12px !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -63,20 +136,20 @@
             </div>
             {% endif %}
 
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" class="upload-form">
                 {% csrf_token %}
 
                 <div class="file-input-wrapper">
                     <input type="file" name="document" id="file-upload" class="file-input" required
                         accept=".pdf,.jpg,.jpeg,.png">
                     <label for="file-upload" class="file-input-label">
-                        <span style="font-size: 1.2rem;">📁</span>
+                        <span style="font-size: 1.2rem; flex-shrink: 0;">📁</span>
                         <span id="file-label-text">Выберите файл на устройстве</span>
                     </label>
                     <div id="file-name" class="file-name-display"></div>
                 </div>
 
-                <button type="submit" class="btn-tonal btn-tonal--primary">
+                <button type="submit" class="btn-tonal btn-tonal--primary btn-upload-submit">
                     ✨ Распознать чек с помощью ИИ
                 </button>
             </form>
