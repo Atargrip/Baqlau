@@ -12,9 +12,8 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 import json
 import os
-from google import genai
 from .models import Transaction, ReceiptItem
-from .ai_service import extract_finance_data
+from .ai_service import extract_finance_data, get_genai_client
 
 
 def register(request):
@@ -352,9 +351,11 @@ def get_ai_advice(request):
         return JsonResponse({"advice": "GEMINI_API_KEY не установлен. Пожалуйста, добавьте ключ в переменные окружения."})
         
     try:
-        client = genai.Client()
+        client = get_genai_client()
+        use_vertex = os.environ.get('GOOGLE_GENAI_USE_VERTEXAI', 'true').lower() in ('true', '1', 'yes')
+        model_name = 'gemini-2.5-flash' if use_vertex else 'gemini-3.8-flash'
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model=model_name,
             contents=prompt,
         )
         return JsonResponse({"advice": response.text.strip()})
@@ -448,9 +449,11 @@ def api_chat_message(request):
         
         prompt += f"\nПользователь сейчас: {user_message}\nBaqlau AI:"
         
-        client = genai.Client()
+        client = get_genai_client()
+        use_vertex = os.environ.get('GOOGLE_GENAI_USE_VERTEXAI', 'true').lower() in ('true', '1', 'yes')
+        model_name = 'gemini-2.5-flash' if use_vertex else 'gemini-3.8-flash'
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model=model_name,
             contents=prompt,
         )
         return JsonResponse({"response": response.text.strip()})

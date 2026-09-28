@@ -2,6 +2,8 @@ import pdfplumber
 import re
 import os
 import json
+from dotenv import load_dotenv
+load_dotenv()
 from decimal import Decimal
 from google import genai
 from google.genai import types
@@ -106,13 +108,25 @@ def parse_kaspi_gold(pdf):
     return transactions
 
 
+def get_genai_client():
+    api_key = os.environ.get('GEMINI_API_KEY')
+    use_vertex = os.environ.get('GOOGLE_GENAI_USE_VERTEXAI', 'true').lower() in ('true', '1', 'yes')
+    project = os.environ.get('GOOGLE_CLOUD_PROJECT', '552220237174')
+    location = os.environ.get('GOOGLE_CLOUD_LOCATION', 'us-central1')
+    if use_vertex:
+        return genai.Client(vertexai=True, project=project, location=location, api_key=api_key)
+    return genai.Client(api_key=api_key)
+
+
 def parse_receipt_image(image_path):
     api_key = os.environ.get('GEMINI_API_KEY')
     if not api_key:
         return {"error": "GEMINI_API_KEY не настроен"}
         
     try:
-        client = genai.Client()
+        client = get_genai_client()
+        use_vertex = os.environ.get('GOOGLE_GENAI_USE_VERTEXAI', 'true').lower() in ('true', '1', 'yes')
+        model_name = 'gemini-2.5-flash-lite' if use_vertex else 'gemini-3.5-flash-lite'
         
         prompt = """
         Проанализируй этот чек. Верни строго JSON в таком формате:
@@ -137,7 +151,7 @@ def parse_receipt_image(image_path):
             image_bytes = f.read()
 
         response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
+            model=model_name,
             contents=[
                 types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
                 prompt
