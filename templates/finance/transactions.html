@@ -17,32 +17,34 @@
     NAVBAR
     ============================================================ -->
     <nav class="navbar">
-        <a href="#" class="navbar__logo">
-            🏦 <span>baqlau</span>
-        </a>
-        <div class="navbar__right">
-            <!-- Streak (gamification) -->
-            <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
-                <span class="streak-badge__emoji">🔥</span>
-                <span id="streak-count">7</span> дней
-            </div>
+        <div class="navbar__inner">
+            <a href="{% url 'dashboard' %}" class="navbar__logo">
+                🏦 <span>baqlau</span>
+            </a>
+            <div class="navbar__right">
+                <!-- Streak (gamification) -->
+                <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
+                    <span class="streak-badge__emoji">🔥</span>
+                    <span id="streak-count">7</span> дней
+                </div>
 
-            <!-- Theme toggle -->
-            <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
-                <span id="theme-icon">🌙</span>
-            </button>
+                <!-- Theme toggle -->
+                <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
+                    <span id="theme-icon">🌙</span>
+                </button>
 
-            <!-- User avatar & Logout -->
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
-                <form action="{% url 'logout' %}" method="post" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-link"
-                        style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
-                    </button>
-                </form>
-                <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
-                    {{user.username|slice:":1"|upper}}</div>
+                <!-- User avatar & Logout -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-link"
+                            style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
+                        </button>
+                    </form>
+                    <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
+                        {{user.username|slice:":1"|upper}}</div>
+                </div>
             </div>
         </div>
     </nav>
@@ -51,24 +53,6 @@
     <!-- ============================================================
     MAIN CONTENT
     ============================================================ -->
-    <style>
-        /* Specific table fixes for the tighter card layout */
-        .dashboard-layout .tx-table th,
-        .dashboard-layout .tx-table td {
-            padding: 12px 16px;
-        }
-
-        .dashboard-layout .tx-table th:first-child,
-        .dashboard-layout .tx-table td:first-child {
-            padding-left: 24px;
-        }
-
-        .dashboard-layout .tx-table th:last-child,
-        .dashboard-layout .tx-table td:last-child {
-            padding-right: 24px;
-        }
-    </style>
-
     <div class="dashboard-layout">
         <!-- Сегментированный контроль (Tab Bar) слева под хедером -->
         <aside class="sidebar-tabs">
@@ -79,9 +63,9 @@
             <a href="{% url 'dashboard' %}" class="tab-btn" style="text-decoration: none;">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📊</span> Дашборд
             </a>
-            <a href="{% url 'transactions' %}" class="tab-btn active" style="text-decoration: none;">
+            <button class="tab-btn active">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📈</span> Транзакции
-            </a>
+            </button>
 
             <a href="{% url 'chatbot' %}" class="tab-btn" style="text-decoration: none;">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">🤖</span> AI Помощник
@@ -106,56 +90,56 @@
             </div>
         </aside>
 
-        <main class="main-content" style="flex: 1; padding: 0; max-width: none; margin: 0; width: 100%;">
-
-            <div class="page-title" style="margin-bottom: 24px; margin-top: 0;">
-                Транзакции
-                <small>История ваших доходов и расходов</small>
+        <main class="main-content">
+            <div class="page-header">
+                <div class="page-header__left">
+                    <h1 class="page-title">Транзакции</h1>
+                    <p class="page-subtitle">История ваших доходов и расходов</p>
+                </div>
+                <div class="page-header__actions">
+                    <div class="month-controls calendar-pill">
+                        <a href="?month={{ prev_month }}&year={{ prev_year }}&category={{ current_category }}"
+                            class="btn-icon"
+                            style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
+                            title="Предыдущий месяц">◀</a>
+                        <button type="button" class="month-picker-trigger" onclick="openCalendarPicker()" title="Нажмите для быстрого выбора даты">
+                            <span>📅</span>
+                            <span class="month-label-text" id="month-label">{{ month_display }}</span>
+                            <span class="cal-arrow">▾</span>
+                        </button>
+                        <a href="?month={{ next_month }}&year={{ next_year }}&category={{ current_category }}"
+                            class="btn-icon"
+                            style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
+                            title="Следующий месяц">▶</a>
+                    </div>
+                </div>
             </div>
 
-            <!-- Сетка карточек по аналогии с макетом (2 колонки) -->
-            <div class="dashboard-grid">
-
-                <div class="b-card"
-                    style="padding: 0; overflow: hidden; display: flex; flex-direction: column; grid-column: span 2;">
-                    <div
-                        style="padding: 24px; border-bottom: 1px solid var(--md-outline-variant); display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-weight: 600; font-size: 1.1rem;">Все транзакции</div>
-
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <select id="category-filter" class="md-select" style="padding: 6px 36px 6px 12px; font-size: 0.8rem; border-radius: 20px;">
-                                <option value="all" {% if current_category == 'all' %}selected{% endif %}>🌈 Все</option>
-                                {% for cat_val, cat_label in categories %}
-                                <option value="{{ cat_val }}" {% if current_category == cat_val %}selected{% endif %}>{{ cat_label }}</option>
-                                {% endfor %}
-                            </select>
-
-                            <div class="month-controls calendar-pill">
-                                <a href="?month={{ prev_month }}&year={{ prev_year }}&category={{ current_category }}"
-                                    class="btn-icon"
-                                    style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
-                                    title="Предыдущий месяц">◀</a>
-                                <button type="button" class="month-picker-trigger" onclick="openCalendarPicker()" title="Нажмите для быстрого выбора даты">
-                                    <span>📅</span>
-                                    <span class="month-label-text" id="month-label">{{ month_display }}</span>
-                                    <span class="cal-arrow">▾</span>
-                                </button>
-                                <a href="?month={{ next_month }}&year={{ next_year }}&category={{ current_category }}"
-                                    class="btn-icon"
-                                    style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
-                                    title="Следующий месяц">▶</a>
-                            </div>
-
-                        </div>
-
-                        <div style="display: flex; gap: 8px;">
-                            <a href="{% url 'upload' %}"
-                                style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: var(--md-primary); text-decoration: none; color: var(--md-on-primary); font-size: 1.4rem; font-weight: 100;"
-                                title="Добавить чек">+</a>
-                        </div>
+            <div class="b-card" style="padding: 0; width: 100%; margin-bottom: 32px;">
+                <div class="card-header-row">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="card-header-title">Все транзакции</span>
+                        <span class="badge-subtle">{{ transactions|length }} записей</span>
                     </div>
 
-                    <div class="tx-scroll-area" style="max-height: calc(100vh - 250px);">
+                    <div class="card-header-actions">
+                        <select id="category-filter" class="md-select" style="padding: 6px 32px 6px 12px; font-size: 0.82rem; border-radius: 20px;">
+                            <option value="all" {% if current_category == 'all' %}selected{% endif %}>🌈 Все категории</option>
+                            {% for cat_val, cat_label in categories %}
+                            <option value="{{ cat_val }}" {% if current_category == cat_val %}selected{% endif %}>{{ cat_label }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <a href="{% url 'upload' %}" class="btn-tonal btn-sm"
+                            style="background: var(--md-primary); color: var(--md-on-primary); text-decoration: none; font-weight: 600;"
+                            title="Добавить чек">
+                            + Добавить чек
+                        </a>
+                    </div>
+                </div>
+
+                <div class="tx-scroll-area" style="max-height: calc(100vh - 280px);">
+
                         <form id="export-form" action="{% url 'export' %}" method="POST" style="margin: 0;">
                             {% csrf_token %}
                             <table class="tx-table"
@@ -236,8 +220,7 @@
                         </form>
                     </div>
                     <!-- Action bottom like on the mockup button -->
-                    <div
-                        style="padding: 16px 24px; border-top: 1px solid var(--md-outline-variant); background: var(--md-surface); display: flex; justify-content: flex-end;">
+                    <div class="card-footer-row" style="justify-content: flex-end;">
                         <button type="submit" form="export-form" id="export-btn" class="btn-tonal btn-tonal--export"
                             style="background: var(--md-primary); color: var(--md-on-primary); min-width: 200px; justify-content: center;"
                             disabled>
@@ -245,7 +228,6 @@
                         </button>
                     </div>
                 </div>
-            </div>
         </main>
     </div>
 

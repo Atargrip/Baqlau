@@ -15,23 +15,35 @@
 
     <!-- NAVBAR -->
     <nav class="navbar">
-        <a href="#" class="navbar__logo">
-            🏦 <span>baqlau</span>
-        </a>
-        <div class="navbar__right">
-            <!-- Streak (gamification) -->
-            <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
-                <span class="streak-badge__emoji">🔥</span>
-                <span id="streak-count">7</span> дней
+        <div class="navbar__inner">
+            <a href="{% url 'dashboard' %}" class="navbar__logo">
+                🏦 <span>baqlau</span>
+            </a>
+            <div class="navbar__right">
+                <!-- Streak (gamification) -->
+                <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
+                    <span class="streak-badge__emoji">🔥</span>
+                    <span id="streak-count">7</span> дней
+                </div>
+
+                <!-- Theme toggle -->
+                <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
+                    <span id="theme-icon">🌙</span>
+                </button>
+
+                <!-- User avatar & Logout -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-link"
+                            style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
+                        </button>
+                    </form>
+                    <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
+                        {{user.username|slice:":1"|upper}}</div>
+                </div>
             </div>
-
-            <!-- Theme toggle -->
-            <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
-                <span id="theme-icon">🌙</span>
-            </button>
-
-            <!-- User avatar -->
-            <div class="avatar" title="Профиль пользователя" aria-label="Профиль">У</div>
         </div>
     </nav>
 

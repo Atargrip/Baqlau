@@ -18,32 +18,34 @@
     NAVBAR
     ============================================================ -->
     <nav class="navbar">
-        <a href="#" class="navbar__logo">
-            🏦 <span>baqlau</span>
-        </a>
-        <div class="navbar__right">
-            <!-- Streak (gamification) -->
-            <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
-                <span class="streak-badge__emoji">🔥</span>
-                <span id="streak-count">7</span> дней
-            </div>
+        <div class="navbar__inner">
+            <a href="{% url 'dashboard' %}" class="navbar__logo">
+                🏦 <span>baqlau</span>
+            </a>
+            <div class="navbar__right">
+                <!-- Streak (gamification) -->
+                <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
+                    <span class="streak-badge__emoji">🔥</span>
+                    <span id="streak-count">7</span> дней
+                </div>
 
-            <!-- Theme toggle -->
-            <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
-                <span id="theme-icon">🌙</span>
-            </button>
+                <!-- Theme toggle -->
+                <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
+                    <span id="theme-icon">🌙</span>
+                </button>
 
-            <!-- User avatar & Logout -->
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
-                <form action="{% url 'logout' %}" method="post" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-link"
-                        style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
-                    </button>
-                </form>
-                <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
-                    {{user.username|slice:":1"|upper}}</div>
+                <!-- User avatar & Logout -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-link"
+                            style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
+                        </button>
+                    </form>
+                    <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
+                        {{user.username|slice:":1"|upper}}</div>
+                </div>
             </div>
         </div>
     </nav>
@@ -115,9 +117,9 @@
             <a href="{% url 'transactions' %}" class="tab-btn" style="text-decoration: none;">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📈</span> Транзакции
             </a>
-            <a class="tab-btn active" style="text-decoration: none;">
+            <button class="tab-btn active">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">🤖</span> AI Помощник
-            </a>
+            </button>
 
             <div style="height: 16px;"></div>
 
@@ -138,82 +140,79 @@
             </div>
         </aside>
 
-        <main class="main-content" style="flex: 1; padding: 0; max-width: none; margin: 0; width: 100%;">
-            <div class="page-title" style="margin-bottom: 24px; margin-top: 0;">
-                ИИ Помощник
-                <small>Анализ ваших трат в реальном времени</small>
+        <main class="main-content">
+            <div class="page-header">
+                <div class="page-header__left">
+                    <h1 class="page-title">ИИ Помощник</h1>
+                    <p class="page-subtitle">Анализ ваших трат в реальном времени</p>
+                </div>
+                <div class="page-header__actions">
+                    <div class="month-controls calendar-pill">
+                        <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn-icon"
+                            style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
+                            title="Предыдущий месяц">◀</a>
+                        <button type="button" class="month-picker-trigger" onclick="openCalendarPicker()" title="Нажмите для быстрого выбора даты">
+                            <span>📅</span>
+                            <span class="month-label-text" id="month-label">{{ month_display }}</span>
+                            <span class="cal-arrow">▾</span>
+                        </button>
+                        <a href="?month={{ next_month }}&year={{ next_year }}" class="btn-icon"
+                            style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
+                            title="Следующий месяц">▶</a>
+                    </div>
+                </div>
             </div>
 
-            <!-- Сетка карточек по аналогии с макетом (2 колонки) -->
-            <div class="dashboard-grid">
-
-                <div class="b-card"
-                    style="padding: 0; overflow: hidden; display: flex; flex-direction: column; grid-column: span 2; min-height: 520px; height: calc(100vh - 220px);">
-                    <!-- Header -->
-                    <div
-                        style="padding: 14px 20px; border-bottom: 1px solid var(--md-outline-variant); display: flex; justify-content: space-between; align-items: center; background: var(--md-surface-variant); flex-wrap: wrap; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div
-                                style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--md-primary) 0%, #a855f7 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">
-                                ✨</div>
-                            <div>
-                                <div style="font-weight: 600; font-size: 1.05rem;">Baqlau AI</div>
-                                <div style="font-size: 0.78rem; opacity: 0.7;">Персональный финансовый советник</div>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div class="month-controls calendar-pill">
-                                <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn-icon"
-                                    style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
-                                    title="Предыдущий месяц">◀</a>
-                                <button type="button" class="month-picker-trigger" onclick="openCalendarPicker()" title="Нажмите для быстрого выбора даты">
-                                    <span>📅</span>
-                                    <span class="month-label-text" id="month-label">{{ month_display }}</span>
-                                    <span class="cal-arrow">▾</span>
-                                </button>
-                                <a href="?month={{ next_month }}&year={{ next_year }}" class="btn-icon"
-                                    style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
-                                    title="Следующий месяц">▶</a>
-                            </div>
-                            <button onclick="clearChat()" class="btn-tonal"
-                                style="padding: 6px 12px; font-size: 0.8rem; background: var(--md-surface); border-radius: 20px; border: 1px solid var(--md-outline-variant);"
-                                title="Очистить сообщения">
-                                🗑️
-                            </button>
+            <div class="b-card"
+                style="padding: 0; width: 100%; min-height: 540px; height: calc(100vh - 240px); display: flex; flex-direction: column; margin-bottom: 32px;">
+                <!-- Header -->
+                <div class="card-header-row" style="background: var(--md-surface-variant);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div
+                            style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--md-primary) 0%, #a855f7 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">
+                            ✨</div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 1.05rem;">Baqlau AI</div>
+                            <div style="font-size: 0.78rem; opacity: 0.7;">Персональный финансовый советник</div>
                         </div>
                     </div>
 
-
-                    <!-- Chat Area -->
-                    <div id="chat-messages"
-                        style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; background: var(--md-surface);">
-
-                        <div class="message-bot message-anim" style="display: flex; gap: 12px; max-width: 80%;">
-                            <div
-                                style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--md-primary) 0%, #a855f7 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; flex-shrink: 0; box-shadow: 0 2px 8px rgba(121, 101, 175, 0.3);">
-                                ✨</div>
-                            <div
-                                style="background: var(--md-surface-container-high); color: var(--md-on-surface); padding: 14px 18px; border-radius: 0 20px 20px 20px; font-size: 0.95rem; line-height: 1.6; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--md-outline-variant);">
-                                Привет! Я ваш ИИ-помощник. Я вижу ваши траты за <b>{{ month_display }}</b>. Чем я могу
-                                помочь? Например, вы можете спросить, на что уходит больше всего денег, или как можно
-                                сэкономить в этом месяце.
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Input Area -->
-                    <div
-                        style="padding: 16px 24px; border-top: 1px solid var(--md-outline-variant); background: var(--md-surface); display: flex; gap: 12px; align-items: center;">
-                        <input type="text" id="chat-input" placeholder="Напишите сообщение..."
-                            style="flex: 1; padding: 12px 16px; border-radius: 24px; border: 1px solid var(--md-outline-variant); background: var(--md-surface-variant); color: var(--md-on-surface); font-size: 1rem; outline: none;"
-                            onkeypress="if(event.key === 'Enter') sendMessage()">
-                        <button onclick="sendMessage()" id="send-btn"
-                            style="width: 44px; height: 44px; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); border: none; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;">
-                            ➤
+                    <div class="card-header-actions">
+                        <button onclick="clearChat()" class="btn-tonal btn-sm"
+                            style="background: var(--md-surface); border: 1px solid var(--md-outline-variant);"
+                            title="Очистить сообщения">
+                            🗑️ Очистить
                         </button>
                     </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div id="chat-messages"
+                    style="flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; background: var(--md-surface);">
+
+                    <div class="message-bot message-anim" style="display: flex; gap: 12px; max-width: 80%;">
+                        <div
+                            style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--md-primary) 0%, #a855f7 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; flex-shrink: 0; box-shadow: 0 2px 8px rgba(121, 101, 175, 0.3);">
+                            ✨</div>
+                        <div
+                            style="background: var(--md-surface-container-high); color: var(--md-on-surface); padding: 14px 18px; border-radius: 0 20px 20px 20px; font-size: 0.95rem; line-height: 1.6; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid var(--md-outline-variant);">
+                            Привет! Я ваш ИИ-помощник. Я вижу ваши траты за <b>{{ month_display }}</b>. Чем я могу
+                            помочь? Например, вы можете спросить, на что уходит больше всего денег, или как можно
+                            сэкономить в этом месяце.
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Input Area -->
+                <div class="card-footer-row" style="background: var(--md-surface);">
+                    <input type="text" id="chat-input" placeholder="Напишите сообщение..."
+                        style="flex: 1; padding: 12px 18px; border-radius: 24px; border: 1px solid var(--md-outline-variant); background: var(--md-surface-variant); color: var(--md-on-surface); font-size: 0.95rem; outline: none;"
+                        onkeypress="if(event.key === 'Enter') sendMessage()">
+                    <button onclick="sendMessage()" id="send-btn"
+                        style="width: 44px; height: 44px; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); border: none; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; flex-shrink: 0;">
+                        ➤
+                    </button>
                 </div>
             </div>
         </main>

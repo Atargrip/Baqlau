@@ -17,32 +17,34 @@
     NAVBAR
     ============================================================ -->
     <nav class="navbar">
-        <a href="#" class="navbar__logo">
-            🏦 <span>baqlau</span>
-        </a>
-        <div class="navbar__right">
-            <!-- Streak (gamification) -->
-            <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
-                <span class="streak-badge__emoji">🔥</span>
-                <span id="streak-count">7</span> дней
-            </div>
+        <div class="navbar__inner">
+            <a href="{% url 'dashboard' %}" class="navbar__logo">
+                🏦 <span>baqlau</span>
+            </a>
+            <div class="navbar__right">
+                <!-- Streak (gamification) -->
+                <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
+                    <span class="streak-badge__emoji">🔥</span>
+                    <span id="streak-count">7</span> дней
+                </div>
 
-            <!-- Theme toggle -->
-            <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
-                <span id="theme-icon">🌙</span>
-            </button>
+                <!-- Theme toggle -->
+                <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
+                    <span id="theme-icon">🌙</span>
+                </button>
 
-            <!-- User avatar & Logout -->
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
-                <form action="{% url 'logout' %}" method="post" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-link"
-                        style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
-                    </button>
-                </form>
-                <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
-                    {{user.username|slice:":1"|upper}}</div>
+                <!-- User avatar & Logout -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-link"
+                            style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
+                        </button>
+                    </form>
+                    <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
+                        {{user.username|slice:":1"|upper}}</div>
+                </div>
             </div>
         </div>
     </nav>
@@ -51,24 +53,6 @@
     <!-- ============================================================
     MAIN CONTENT
     ============================================================ -->
-    <style>
-        /* Specific table fixes for the tighter card layout */
-        .dashboard-layout .tx-table th,
-        .dashboard-layout .tx-table td {
-            padding: 12px 16px;
-        }
-
-        .dashboard-layout .tx-table th:first-child,
-        .dashboard-layout .tx-table td:first-child {
-            padding-left: 24px;
-        }
-
-        .dashboard-layout .tx-table th:last-child,
-        .dashboard-layout .tx-table td:last-child {
-            padding-right: 24px;
-        }
-    </style>
-
     <div class="dashboard-layout">
         <!-- Сегментированный контроль (Tab Bar) слева под хедером -->
         <aside class="sidebar-tabs">
@@ -106,117 +90,118 @@
             </div>
         </aside>
 
-        <main class="main-content" style="flex: 1; padding: 0; max-width: none; margin: 0; width: 100%;">
-            <div class="page-title" style="margin-bottom: 24px; margin-top: 0;">
-                Дашборд
-                <small>Обзор ваших финансов и статистика</small>
+        <main class="main-content">
+            <div class="page-header">
+                <div class="page-header__left">
+                    <h1 class="page-title">Дашборд</h1>
+                    <p class="page-subtitle">Обзор ваших финансов и статистика</p>
+                </div>
+                <div class="page-header__actions">
+                    <div class="month-controls calendar-pill">
+                        <a href="?month={{ prev_month }}&year={{ prev_year }}{% if current_category and current_category != 'all' %}&category={{ current_category }}{% endif %}"
+                            class="btn-icon"
+                            style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
+                            title="Предыдущий месяц">◀</a>
+                        <button type="button" class="month-picker-trigger" onclick="openCalendarPicker()" title="Нажмите для быстрого выбора даты">
+                            <span>📅</span>
+                            <span class="month-label-text" id="month-label">{{ month_display }}</span>
+                            <span class="cal-arrow">▾</span>
+                        </button>
+                        <a href="?month={{ next_month }}&year={{ next_year }}{% if current_category and current_category != 'all' %}&category={{ current_category }}{% endif %}"
+                            class="btn-icon"
+                            style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
+                            title="Следующий месяц">▶</a>
+                    </div>
+                </div>
             </div>
 
             <!-- Сетка карточек по аналогии с макетом (2 колонки) -->
             <div class="dashboard-grid">
 
                 <!-- Левая верхняя широкая карточка (Growth insights) -->
-                <div class="b-card card-ai" style="padding: 32px; position: relative; overflow: hidden;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; position: relative; z-index: 2;">
-                        <div
-                            style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase;">
+                <div class="b-card card-ai">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; position: relative; z-index: 2;">
+                        <div style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase;">
                             ✨ Baqlau AI Аналитика
                         </div>
                     </div>
 
-                    <h2
-                        style="font-size: 2.2rem; margin: 0 0 12px 0; position: relative; z-index: 2; line-height: 1.2;">
-                        Аналитика бюджета<br>уже готова</h2>
-                    <p id="ai-advice-text"
-                        style="font-size: 1rem; opacity: 0.9; margin: 0 0 24px 0; line-height: 1.5; max-width: 80%; position: relative; z-index: 2; min-height: 72px;">
-                        Искусственный интеллект проанализировал ваши транзакции и готов дать совет по оптимизации
-                        расходов в этом месяце.
-                    </p>
-                    <div style="display: flex; gap: 12px; position: relative; z-index: 2;">
+                    <div style="position: relative; z-index: 2; margin: auto 0;">
+                        <h2 style="font-size: 2rem; margin: 0 0 10px 0; line-height: 1.25; font-weight: 700;">
+                            Аналитика бюджета<br>уже готова
+                        </h2>
+                        <p id="ai-advice-text" style="font-size: 0.95rem; opacity: 0.9; margin: 0; line-height: 1.5; min-height: 60px;">
+                            Искусственный интеллект проанализировал ваши транзакции и готов дать совет по оптимизации расходов в этом месяце.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; position: relative; z-index: 2; margin-top: 16px;">
                         <button id="btn-ai-advice" class="btn-tonal" onclick="fetchAiAdvice()"
-                            style="background: var(--md-primary); color: var(--md-on-primary); font-weight: 600; padding: 10px 24px; min-width: 160px; justify-content: center;">
+                            style="background: var(--md-primary); color: var(--md-on-primary); font-weight: 600; padding: 10px 24px; min-width: 140px; justify-content: center;">
                             Анализ
                         </button>
-                        <button class="btn-tonal"
-                            style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: inherit; font-weight: 500;">
-                            Подробнее
-                        </button>
+                        <a href="{% url 'chatbot' %}" class="btn-tonal"
+                            style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: inherit; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; padding: 10px 20px;">
+                            AI Чат
+                        </a>
                     </div>
                     <!-- Декоративное пятно света (как на макете) -->
                     <div
-                        style="position: absolute; right: -50px; bottom: -50px; width: 250px; height: 250px; background: var(--md-primary); opacity: 0.4; filter: blur(60px); border-radius: 50%; z-index: 1;">
+                        style="position: absolute; right: -50px; bottom: -50px; width: 220px; height: 220px; background: var(--md-primary); opacity: 0.35; filter: blur(60px); border-radius: 50%; z-index: 1;">
                     </div>
                 </div>
 
                 <!-- Правая средняя карточка (Аналог Monthly Revenue) -->
                 <div class="b-card card-balance">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                        <div
-                            style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; opacity: 0.7; letter-spacing: 1px;">
-                            Текущий баланс</div>
-                        <div
-                            style="background: rgba(74, 222, 128, 0.1); color: #4ade80; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
-                            В этом месяце</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; opacity: 0.7; letter-spacing: 0.5px;">
+                            Текущий баланс
+                        </div>
+                        <div style="background: rgba(74, 222, 128, 0.12); color: #22c55e; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+                            {{ month_display }}
+                        </div>
                     </div>
-                    <div style="font-size: 2.8rem; font-weight: 700; margin-bottom: 24px; color: var(--md-on-surface);">
-                        {{ balance|floatformat:2 }} ₸</div>
 
-                    <div
-                        style="display: flex; gap: 24px; padding-top: 16px; border-top: 1px solid var(--md-outline-variant);">
+                    <div style="font-size: 2.7rem; font-weight: 700; color: var(--md-on-surface); line-height: 1.1; margin: auto 0; letter-spacing: -1px;">
+                        {{ balance|floatformat:2 }} ₸
+                    </div>
+
+                    <div style="display: flex; gap: 20px; padding-top: 16px; border-top: 1px solid var(--md-outline-variant); margin-top: 16px;">
                         <div style="flex: 1;">
-                            <div
-                                style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; opacity: 0.7; margin-bottom: 4px; text-transform: uppercase;">
-                                <span style="color: #4ade80;">●</span> Доходы
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; opacity: 0.7; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">
+                                <span style="color: #22c55e;">●</span> Доходы
                             </div>
-                            <div style="font-size: 1.1rem; font-weight: 600;">{{ income|floatformat:0 }} ₸</div>
+                            <div style="font-size: 1.15rem; font-weight: 700; color: #22c55e;">+{{ income|floatformat:0 }} ₸</div>
                         </div>
                         <div style="flex: 1;">
-                            <div
-                                style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; opacity: 0.7; margin-bottom: 4px; text-transform: uppercase;">
-                                <span style="color: #f87171;">●</span> Расходы
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; opacity: 0.7; margin-bottom: 4px; text-transform: uppercase; font-weight: 600;">
+                                <span style="color: #ef4444;">●</span> Расходы
                             </div>
-                            <div style="font-size: 1.1rem; font-weight: 600;">{{ expense|floatformat:0 }} ₸</div>
+                            <div style="font-size: 1.15rem; font-weight: 700; color: #ef4444;">−{{ expense|floatformat:0 }} ₸</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Нижняя левая карточка (Аналог Projects list) -->
-                <div class="b-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-                    <div
-                        style="padding: 24px; border-bottom: 1px solid var(--md-outline-variant); display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-weight: 600; font-size: 1.1rem;">Последние транзакции</div>
+                <div class="b-card" style="padding: 0; display: flex; flex-direction: column;">
+                    <div class="card-header-row">
+                        <div class="card-header-title">Последние транзакции</div>
 
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <select id="category-filter" class="md-select" style="padding: 6px 36px 6px 12px; font-size: 0.8rem; border-radius: 20px;">
+                        <div class="card-header-actions">
+                            <select id="category-filter" class="md-select" style="padding: 6px 32px 6px 12px; font-size: 0.82rem; border-radius: 20px;">
                                 <option value="all" {% if current_category == 'all' %}selected{% endif %}>🌈 Все</option>
                                 {% for cat_val, cat_label in categories %}
                                 <option value="{{ cat_val }}" {% if current_category == cat_val %}selected{% endif %}>{{ cat_label }}</option>
                                 {% endfor %}
                             </select>
 
-                            <div class="month-controls calendar-pill">
-                                <a href="?month={{ prev_month }}&year={{ prev_year }}&category={{ current_category }}"
-                                    class="btn-icon"
-                                    style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
-                                    title="Предыдущий месяц">◀</a>
-                                <button type="button" class="month-picker-trigger" onclick="openCalendarPicker()" title="Нажмите для быстрого выбора даты">
-                                    <span>📅</span>
-                                    <span class="month-label-text" id="month-label-list">{{ month_display }}</span>
-                                    <span class="cal-arrow">▾</span>
-                                </button>
-                                <a href="?month={{ next_month }}&year={{ next_year }}&category={{ current_category }}"
-                                    class="btn-icon"
-                                    style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
-                                    title="Следующий месяц">▶</a>
-                            </div>
-
-
-                            <a href="{% url 'upload' %}"
-                                style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: var(--md-primary); text-decoration: none; color: var(--md-on-primary); font-size: 1.2rem; font-weight: 100;">+</a>
+                            <a href="{% url 'upload' %}" class="btn-tonal btn-sm"
+                                style="background: var(--md-primary); color: var(--md-on-primary); text-decoration: none; font-weight: 600;">
+                                + Чек
+                            </a>
                         </div>
                     </div>
+
 
                     <div class="tx-scroll-area">
                         <form id="export-form" action="{% url 'export' %}" method="POST" style="margin: 0;">
@@ -289,8 +274,7 @@
                         </form>
                     </div>
                     <!-- Action bottom like on the mockup button -->
-                    <div
-                        style="padding: 16px 24px; border-top: 1px solid var(--md-outline-variant); background: var(--md-surface); display: flex; gap: 12px;">
+                    <div class="card-footer-row">
                         <button type="submit" form="export-form" id="export-btn" class="btn-tonal btn-tonal--export"
                             style="flex: 1; justify-content: center; background: var(--md-primary); color: var(--md-on-primary);"
                             disabled>
@@ -303,27 +287,14 @@
                     </div>
                 </div>
 
-                <!-- Правая нижняя карточка (Аналог Traffic Sources chart) -->
-                <div class="b-card chart-card" style="margin: 0; box-shadow: none;">
-                    <div class="chart-card__header" style="margin-bottom: 24px;">
-                        <div class="chart-card__title">Источники расходов</div>
-                        <div class="month-controls calendar-pill">
-                            <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn-icon"
-                                style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
-                                title="Предыдущий месяц">◀</a>
-                            <button type="button" class="month-picker-trigger" onclick="openCalendarPicker()" title="Нажмите для быстрого выбора даты">
-                                <span>📅</span>
-                                <span class="month-label-text" id="month-label">{{ month_display }}</span>
-                                <span class="cal-arrow">▾</span>
-                            </button>
-                            <a href="?month={{ next_month }}&year={{ next_year }}" class="btn-icon"
-                                style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
-                                title="Следующий месяц">▶</a>
-                        </div>
-
+                <!-- Правая нижняя карточка (График категорий трат) -->
+                <div class="b-card chart-card" style="padding: 0; display: flex; flex-direction: column;">
+                    <div class="card-header-row">
+                        <div class="card-header-title">Источники расходов</div>
+                        <span class="badge-subtle">Категории трат</span>
                     </div>
 
-                    <div class="chart-view-wrapper" style="min-height: 250px; flex: 1; align-items: center;">
+                    <div class="chart-view-wrapper" style="padding: 24px; min-height: 280px; flex: 1; display: flex; align-items: center; justify-content: center;">
                         {% if chart_values %}
                         <canvas id="categoryChart"></canvas>
                         {% else %}
