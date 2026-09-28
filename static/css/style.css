@@ -160,6 +160,17 @@
     /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 
+html {
+    overflow-x: hidden;
+    width: 100%;
+    -webkit-text-size-adjust: 100%;
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--md-background);
@@ -169,6 +180,11 @@ body {
     flex-direction: column;
     transition: background-color 0.35s ease, color 0.35s ease;
     line-height: 1.5;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* ===================================================
@@ -221,6 +237,7 @@ body {
     font-weight: 700;
     letter-spacing: -0.5px;
     color: var(--md-primary);
+    flex-shrink: 0;
 }
 
 .navbar__logo span {
@@ -231,6 +248,7 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
+    flex-shrink: 0;
 }
 
 /* Theme toggle button */
@@ -1074,37 +1092,6 @@ body {
     }
 }
 
-@media (max-width: 640px) {
-    .navbar {
-        padding: 12px 16px;
-    }
-
-    .main-content {
-        padding: 20px 12px 48px;
-    }
-
-    .tx-table td,
-    .tx-table th {
-        padding: 10px 10px;
-    }
-
-    .section-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .upload-card {
-        padding: 32px 24px;
-        border-radius: 20px;
-    }
-
-    .upload-icon {
-        width: 64px;
-        height: 64px;
-        line-height: 64px;
-        font-size: 2.5rem;
-    }
-}
 
 /* ===================================================
    MODAL WINDOW (MD3)
@@ -1317,6 +1304,15 @@ body {
     max-width: 1600px;
     margin: 0 auto;
     width: 100%;
+    box-sizing: border-box;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .sidebar-tabs {
@@ -1368,12 +1364,14 @@ body {
     gap: 16px;
     flex-wrap: wrap;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .page-header__left {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-width: 0;
 }
 
 .page-title {
@@ -1396,6 +1394,7 @@ body {
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+    min-width: 0;
 }
 
 /* ===================================================
@@ -1403,10 +1402,11 @@ body {
 =================================================== */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 1.25fr 1fr;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     gap: 24px;
     width: 100%;
     margin-bottom: 32px;
+    box-sizing: border-box;
 }
 
 .b-card {
@@ -1419,6 +1419,10 @@ body {
     border: 1px solid var(--md-outline-variant);
     transition: transform 0.2s, box-shadow 0.2s;
     overflow: hidden;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 [data-theme="dark"] .b-card {
@@ -1759,6 +1763,8 @@ body {
         flex-direction: column;
         padding: 16px 16px 88px;
         gap: 20px;
+        box-sizing: border-box;
+        width: 100%;
     }
 
     .sidebar-tabs {
@@ -1770,9 +1776,10 @@ body {
     }
 
     .dashboard-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 20px;
         margin-bottom: 24px;
+        width: 100%;
     }
 
     .dashboard-grid > div[style*="grid-column: span 2"] {
@@ -1789,34 +1796,101 @@ body {
     }
 }
 
+/* ── PREVENT MOBILE AUTO-ZOOM (iOS Safari & Android Chrome) ── */
+@media (max-width: 768px) {
+    input,
+    select,
+    textarea,
+    .md-select,
+    #category-filter,
+    #chat-input,
+    .month-picker-trigger {
+        font-size: 16px !important; /* CRITICAL: prevents auto-zoom on iOS/Android */
+    }
+}
+
 @media (max-width: 640px) {
+    /* ── NAVBAR MOBILE COMPACT ────────────────────────── */
     .navbar {
-        padding: 0 12px;
+        padding: 0 10px;
     }
 
     .navbar__inner {
-        min-height: 52px;
+        min-height: 50px;
+        padding: 0;
     }
 
     .navbar__logo {
         font-size: 1.15rem;
+        gap: 6px;
+    }
+
+    .navbar__right {
+        gap: 8px;
     }
 
     .streak-badge {
         padding: 4px 8px;
-        font-size: 0.75rem;
+        font-size: 0.78rem;
+        gap: 3px;
     }
 
+    .streak-badge__label {
+        display: none !important;
+    }
+
+    .theme-toggle {
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
+    }
+
+    .navbar__user-name {
+        display: none !important;
+    }
+
+    .navbar__logout-link {
+        font-size: 0.78rem !important;
+        padding: 4px 6px !important;
+    }
+
+    .navbar__logout-text {
+        display: none !important;
+    }
+
+    .navbar__logout-icon {
+        display: inline-block !important;
+        font-size: 0.95rem;
+    }
+
+    .avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.82rem;
+    }
+
+    /* ── LAYOUT & PAGE HEADER ─────────────────────────── */
     .dashboard-layout {
-        padding: 12px 12px 84px;
-        gap: 16px;
+        padding: 10px 10px 88px;
+        gap: 14px;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
     }
 
     .page-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 16px;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .page-title {
+        font-size: 1.45rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.8rem;
     }
 
     .page-header__actions {
@@ -1824,66 +1898,203 @@ body {
         justify-content: space-between;
     }
 
+    .calendar-pill {
+        padding: 2px 4px;
+        gap: 4px;
+    }
+
+    .month-picker-trigger {
+        font-size: 0.85rem !important;
+        padding: 4px 6px;
+    }
+
+    /* ── CARDS MOBILE ─────────────────────────────────── */
+    .dashboard-grid {
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
     .b-card {
         border-radius: 16px;
+        padding: 16px;
+        box-sizing: border-box;
     }
 
     .card-ai {
-        padding: 20px !important;
+        padding: 18px 14px !important;
+        min-height: auto;
     }
 
     .card-ai h2 {
-        font-size: 1.5rem !important;
+        font-size: 1.3rem !important;
+        margin-bottom: 8px !important;
     }
 
     .card-ai p {
         max-width: 100% !important;
-        font-size: 0.88rem !important;
-        margin-bottom: 16px !important;
+        font-size: 0.84rem !important;
+        margin-bottom: 14px !important;
+        line-height: 1.45 !important;
+    }
+
+    .card-ai div[style*="display: flex; gap: 12px"] {
+        display: flex !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .card-ai .btn-tonal {
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        padding: 9px 8px !important;
+        font-size: 0.85rem !important;
+        justify-content: center !important;
+        text-align: center;
     }
 
     .card-balance {
-        padding: 20px !important;
+        padding: 18px 14px !important;
+        min-height: auto;
     }
 
     .card-balance div[style*="font-size: 2.8rem"] {
-        font-size: 2rem !important;
-        margin-bottom: 16px !important;
+        font-size: 1.85rem !important;
+        margin: 8px 0 !important;
     }
 
     .card-header-row {
-        padding: 16px 16px !important;
+        padding: 14px 14px !important;
+        gap: 10px;
+    }
+
+    .card-header-title {
+        font-size: 1rem !important;
+    }
+
+    .card-header-actions {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+    }
+
+    .card-header-actions .md-select {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 6px 26px 6px 10px !important;
+        font-size: 0.82rem !important;
     }
 
     .card-footer-row {
-        padding: 14px 16px !important;
+        padding: 12px 14px !important;
         flex-direction: column;
+    }
+
+    .card-footer-row.chat-input-bar {
+        flex-direction: row !important;
+        align-items: center;
+        gap: 8px;
     }
 
     .card-footer-row .btn-tonal {
         width: 100%;
     }
 
+    .col-type-badge {
+        display: none !important;
+    }
+
+    /* ── TABLE MOBILE OPTIMIZATION ────────────────────── */
+    .tx-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
     .tx-table th,
     .tx-table td {
-        padding: 10px 8px !important;
-        font-size: 0.82rem;
+        padding: 10px 4px !important;
+        font-size: 0.8rem;
     }
 
-    .calendar-pill {
-        padding: 2px;
+    .tx-table th:first-child,
+    .tx-table td:first-child {
+        width: 32px !important;
+        padding-left: 8px !important;
+        padding-right: 2px !important;
+        text-align: center;
     }
 
-    .month-picker-trigger {
-        font-size: 0.82rem;
-        padding: 4px 6px;
+    .tx-table th:last-child,
+    .tx-table td:last-child {
+        width: 90px !important;
+        padding-right: 8px !important;
+        text-align: right;
     }
 
+    .tx-merchant-box {
+        max-width: 125px;
+        overflow: hidden;
+    }
+
+    .tx-merchant-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        font-size: 0.85rem;
+    }
+
+    .tx-merchant-sub {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        font-size: 0.7rem;
+    }
+
+    .amount-expense,
+    .amount-income {
+        font-size: 0.92rem !important;
+        white-space: nowrap;
+    }
+
+    /* ── BOTTOM NAV ───────────────────────────────────── */
+    .mobile-bottom-nav {
+        height: 60px;
+        padding: 0 4px;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .mobile-nav-item--fab {
+        top: -12px;
+    }
+
+    .mobile-nav-item--fab .mobile-nav-fab {
+        width: 44px;
+        height: 44px;
+        font-size: 1.6rem;
+        margin-bottom: 2px;
+        box-shadow: 0 4px 12px rgba(121, 101, 175, 0.4);
+    }
+
+    .mobile-nav-item--fab .mobile-nav-label {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--md-primary);
+    }
+
+    /* ── MODALS & AUTH ────────────────────────────────── */
     .auth-card,
     .upload-card {
         padding: 24px 16px !important;
         margin: 12px;
+        width: calc(100% - 24px);
+    }
+
+    .calendar-modal-container {
+        padding: 18px 14px;
+        max-width: calc(100vw - 24px);
     }
 }
+
 
 

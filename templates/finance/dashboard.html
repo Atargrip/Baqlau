@@ -3,10 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>baqlau — Финансовый Дашборд</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=5">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -25,7 +25,7 @@
                 <!-- Streak (gamification) -->
                 <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
                     <span class="streak-badge__emoji">🔥</span>
-                    <span id="streak-count">7</span> дней
+                    <span id="streak-count">7</span><span class="streak-badge__label"> дней</span>
                 </div>
 
                 <!-- Theme toggle -->
@@ -34,12 +34,15 @@
                 </button>
 
                 <!-- User avatar & Logout -->
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
-                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                <div class="navbar__user-group" style="display: flex; align-items: center; gap: 8px;">
+                    <span class="navbar__user-name" style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" style="display: inline; margin: 0;">
                         {% csrf_token %}
-                        <button type="submit" class="btn-link"
-                            style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
+                        <button type="submit" class="btn-link navbar__logout-link"
+                            style="border: none; background: none; cursor: pointer; font-size: 0.8rem; padding: 2px 4px;"
+                            title="Выйти из аккаунта">
+                            <span class="navbar__logout-text">Выйти</span>
+                            <span class="navbar__logout-icon" style="display: none;">🚪</span>
                         </button>
                     </form>
                     <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
@@ -135,9 +138,9 @@
                         </p>
                     </div>
 
-                    <div style="display: flex; gap: 12px; position: relative; z-index: 2; margin-top: 16px;">
+                    <div class="card-ai__actions" style="display: flex; gap: 12px; position: relative; z-index: 2; margin-top: 16px;">
                         <button id="btn-ai-advice" class="btn-tonal" onclick="fetchAiAdvice()"
-                            style="background: var(--md-primary); color: var(--md-on-primary); font-weight: 600; padding: 10px 24px; min-width: 140px; justify-content: center;">
+                            style="background: var(--md-primary); color: var(--md-on-primary); font-weight: 600; padding: 10px 20px; justify-content: center;">
                             Анализ
                         </button>
                         <a href="{% url 'chatbot' %}" class="btn-tonal"
@@ -223,18 +226,18 @@
                                         <td><input type="checkbox" name="transaction_ids" value="{{ t.id }}"
                                                 class="md-checkbox transaction-checkbox"></td>
                                         <td>
-                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
                                                 <div
-                                                    style="width: 40px; height: 40px; border-radius: 8px; background: var(--md-surface-variant); display: flex; justify-content: center; align-items: center; font-size: 1.2rem;">
+                                                    style="width: 34px; height: 34px; border-radius: 8px; background: var(--md-surface-variant); display: flex; justify-content: center; align-items: center; font-size: 1.1rem; flex-shrink: 0;">
                                                     {% if t.transaction_type == 'expense' %}💸{% else %}💰{% endif %}
                                                 </div>
-                                                <div>
-                                                    <div
-                                                        style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                                                        {{ t.merchant }}
+                                                <div class="tx-merchant-box" style="min-width: 0; flex: 1;">
+                                                    <div class="tx-merchant-title"
+                                                        style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.merchant }}</span>
                                                         {% if t.items.exists %}
                                                         <button type="button"
-                                                            style="background: none; border: none; cursor: pointer; color: var(--md-primary); padding: 0;"
+                                                            style="background: none; border: none; cursor: pointer; color: var(--md-primary); padding: 0; flex-shrink: 0;"
                                                             data-tx-id="{{ t.id }}"
                                                             data-source-url="{% if t.source_file %}{{ t.source_file.url }}{% else %}{% endif %}"
                                                             data-items="{% for item in t.items.all %}{{ item.id }}|{{ item.name|escapejs }}|{{ item.price|stringformat:'.2f' }}|{{ item.quantity }}{% if not forloop.last %}||{% endif %}{% endfor %}"
@@ -242,22 +245,22 @@
                                                             title="Детали чека">🧾</button>
                                                         {% endif %}
                                                     </div>
-                                                    <div style="font-size: 0.8rem; opacity: 0.7;">
+                                                    <div class="tx-merchant-sub" style="font-size: 0.76rem; opacity: 0.7;">
                                                         {{ t.date|date:"d M Y" }} •
                                                         <span style="color: var(--md-primary)">{{ t.chip_label }}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td style="padding-right: 24px; text-align: right;">
-                                            <div style="font-weight: 600; font-size: 1.05rem;"
+                                        <td style="text-align: right;">
+                                            <div style="font-weight: 600; font-size: 1rem; white-space: nowrap;"
                                                 class="{% if t.transaction_type == 'expense' %}amount-expense{% else %}amount-income{% endif %}">
                                                 {% if t.transaction_type == 'expense' %}−{% else %}+{% endif %}{{ t.amount }}
                                             </div>
                                             {% if t.transaction_type == 'income' %}
-                                            <div style="font-size: 0.75rem; color: #4ade80;">Пополнение</div>
+                                            <div style="font-size: 0.72rem; color: #4ade80;">Пополнение</div>
                                             {% else %}
-                                            <div style="font-size: 0.75rem; opacity: 0.5;">Списание</div>
+                                            <div style="font-size: 0.72rem; opacity: 0.5;">Списание</div>
                                             {% endif %}
                                         </td>
                                     </tr>

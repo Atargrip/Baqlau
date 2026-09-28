@@ -4,10 +4,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>baqlau — Финансовый Дашборд</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>baqlau — AI Консультант</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=5">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -26,7 +26,7 @@
                 <!-- Streak (gamification) -->
                 <div class="streak-badge" title="Ваш стрик — заходите каждый день, чтобы не потерять!">
                     <span class="streak-badge__emoji">🔥</span>
-                    <span id="streak-count">7</span> дней
+                    <span id="streak-count">7</span><span class="streak-badge__label"> дней</span>
                 </div>
 
                 <!-- Theme toggle -->
@@ -35,12 +35,15 @@
                 </button>
 
                 <!-- User avatar & Logout -->
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
-                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                <div class="navbar__user-group" style="display: flex; align-items: center; gap: 8px;">
+                    <span class="navbar__user-name" style="font-size: 0.9rem; font-weight: 600;">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" style="display: inline; margin: 0;">
                         {% csrf_token %}
-                        <button type="submit" class="btn-link"
-                            style="border: none; background: none; cursor: pointer; font-size: 0.8rem;">Выйти
+                        <button type="submit" class="btn-link navbar__logout-link"
+                            style="border: none; background: none; cursor: pointer; font-size: 0.8rem; padding: 2px 4px;"
+                            title="Выйти из аккаунта">
+                            <span class="navbar__logout-text">Выйти</span>
+                            <span class="navbar__logout-icon" style="display: none;">🚪</span>
                         </button>
                     </form>
                     <div class="avatar" title="Профиль пользователя" aria-label="Профиль">
@@ -205,7 +208,7 @@
                 </div>
 
                 <!-- Input Area -->
-                <div class="card-footer-row" style="background: var(--md-surface);">
+                <div class="card-footer-row chat-input-bar" style="background: var(--md-surface);">
                     <input type="text" id="chat-input" placeholder="Напишите сообщение..."
                         style="flex: 1; padding: 12px 18px; border-radius: 24px; border: 1px solid var(--md-outline-variant); background: var(--md-surface-variant); color: var(--md-on-surface); font-size: 0.95rem; outline: none;"
                         onkeypress="if(event.key === 'Enter') sendMessage()">
