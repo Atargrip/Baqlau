@@ -62,13 +62,36 @@
                 </div>
 
                 <button type="submit" class="btn-tonal btn-tonal--primary">
-                    ✨ Распознать (Gemini AI)
+                    ✨ Распознать чек с помощью ИИ
                 </button>
             </form>
 
             <a href="{% url 'dashboard' %}" class="btn-link">← Вернуться к дашборду</a>
         </div>
     </main>
+
+    <!-- ============================================================
+    MOBILE BOTTOM NAVIGATION
+    ============================================================ -->
+    <nav class="mobile-bottom-nav" aria-label="Мобильная навигация">
+        <a href="{% url 'dashboard' %}" class="mobile-nav-item">
+            <span class="mobile-nav-icon">📊</span>
+            <span class="mobile-nav-label">Дашборд</span>
+        </a>
+        <a href="{% url 'transactions' %}" class="mobile-nav-item">
+            <span class="mobile-nav-icon">📈</span>
+            <span class="mobile-nav-label">Транзакции</span>
+        </a>
+        <a href="{% url 'upload' %}" class="mobile-nav-item mobile-nav-item--fab active" title="Добавить чек">
+            <span class="mobile-nav-fab">+</span>
+            <span class="mobile-nav-label">Чек</span>
+        </a>
+        <a href="{% url 'chatbot' %}" class="mobile-nav-item">
+            <span class="mobile-nav-icon">🤖</span>
+            <span class="mobile-nav-label">AI Чат</span>
+        </a>
+    </nav>
+
 
     <script>
         /* ── THEME TOGGLE ─────────────────────────────────────────── */

@@ -65,14 +65,29 @@ def auto_categorize(merchant, transaction_type):
     return 'other'
 
 
-@login_required
-def dashboard(request):
-    # 1. Month/Year filtering logic
-    today = date.today()
-    month = int(request.GET.get('month', today.month))
-    year = int(request.GET.get('year', today.year))
+RU_MONTHS = [
+    (1, 'Январь'),
+    (2, 'Февраль'),
+    (3, 'Март'),
+    (4, 'Апрель'),
+    (5, 'Май'),
+    (6, 'Июнь'),
+    (7, 'Июль'),
+    (8, 'Август'),
+    (9, 'Сентябрь'),
+    (10, 'Октябрь'),
+    (11, 'Ноябрь'),
+    (12, 'Декабрь'),
+]
+RU_MONTH_DICT = dict(RU_MONTHS)
 
-    # Calculate prev/next month for buttons
+
+def get_month_display(month, year):
+    return f"{RU_MONTH_DICT.get(month, '')} {year}"
+
+
+def get_calendar_context(month, year):
+    today = date.today()
     if month == 1:
         prev_month, prev_year = 12, year - 1
     else:
@@ -83,8 +98,35 @@ def dashboard(request):
     else:
         next_month, next_year = month + 1, year
 
-    selected_date = date(year, month, 1)
-    month_name = selected_date.strftime("%B %Y") # We'll handle localization in template or just use format
+    current_actual_year = today.year
+    available_years = list(range(current_actual_year - 4, current_actual_year + 3))
+    if year not in available_years:
+        available_years.append(year)
+        available_years.sort()
+
+    return {
+        'current_month': month,
+        'current_year': year,
+        'today_month': today.month,
+        'today_year': today.year,
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
+        'month_display': get_month_display(month, year),
+        'month_input_val': f"{year:04d}-{month:02d}",
+        'all_months': RU_MONTHS,
+        'available_years': available_years,
+    }
+
+
+@login_required
+def dashboard(request):
+    # 1. Month/Year filtering logic
+    today = date.today()
+    month = int(request.GET.get('month', today.month))
+    year = int(request.GET.get('year', today.year))
+    cal_ctx = get_calendar_context(month, year)
 
     # 2. Base transactions for current user
     user_transactions = Transaction.objects.filter(user=request.user)
@@ -157,18 +199,12 @@ def dashboard(request):
         'chart_labels': chart_labels,
         'chart_values': chart_values,
         'chart_bg_colors': chart_bg_colors,
-        # Month Controls
-        'current_month': month,
-        'current_year': year,
-        'prev_month': prev_month,
-        'prev_year': prev_year,
-        'next_month': next_month,
-        'next_year': next_year,
-        'month_display': month_name,
         'categories': Transaction.CATEGORY_CHOICES,
         'current_category': category,
+        **cal_ctx
     }
     return render(request, 'finance/dashboard.html', context)
+
 
 @login_required
 def all_transactions(request):
@@ -176,19 +212,7 @@ def all_transactions(request):
     month = int(request.GET.get('month', today.month))
     year = int(request.GET.get('year', today.year))
     category = request.GET.get('category', 'all')
-
-    if month == 1:
-        prev_month, prev_year = 12, year - 1
-    else:
-        prev_month, prev_year = month - 1, year
-
-    if month == 12:
-        next_month, next_year = 1, year + 1
-    else:
-        next_month, next_year = month + 1, year
-
-    selected_date = date(year, month, 1)
-    month_name = selected_date.strftime("%B %Y")
+    cal_ctx = get_calendar_context(month, year)
 
     transactions_qs = Transaction.objects.filter(
         user=request.user,
@@ -206,15 +230,9 @@ def all_transactions(request):
 
     context = {
         'transactions': transactions,
-        'current_month': month,
-        'current_year': year,
-        'prev_month': prev_month,
-        'prev_year': prev_year,
-        'next_month': next_month,
-        'next_year': next_year,
-        'month_display': month_name,
         'categories': Transaction.CATEGORY_CHOICES,
         'current_category': category,
+        **cal_ctx
     }
     return render(request, 'finance/transactions.html', context)
 
@@ -368,34 +386,8 @@ def ai_chatbot_page(request):
     today = date.today()
     month = int(request.GET.get('month', today.month))
     year = int(request.GET.get('year', today.year))
-
-    if month == 1:
-        prev_month, prev_year = 12, year - 1
-    else:
-        prev_month, prev_year = month - 1, year
-
-    if month == 12:
-        next_month, next_year = 1, year + 1
-    else:
-        next_month, next_year = month + 1, year
-
-    mapping_ru = {
-        1: 'Январь', 2: 'Февраль', 3: 'Март', 4: 'Апрель',
-        5: 'Май', 6: 'Июнь', 7: 'Июль', 8: 'Август',
-        9: 'Сентябрь', 10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь'
-    }
-    rus_month_name = f"{mapping_ru.get(month, '')} {year}"
-
-    context = {
-        'current_month': month,
-        'current_year': year,
-        'prev_month': prev_month,
-        'prev_year': prev_year,
-        'next_month': next_month,
-        'next_year': next_year,
-        'month_display': rus_month_name
-    }
-    return render(request, 'finance/chatbot.html', context)
+    cal_ctx = get_calendar_context(month, year)
+    return render(request, 'finance/chatbot.html', cal_ctx)
 
 
 @login_required

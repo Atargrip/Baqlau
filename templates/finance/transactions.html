@@ -52,94 +52,6 @@
     MAIN CONTENT
     ============================================================ -->
     <style>
-        /* Styling to match the Aura dashboard reference */
-        .dashboard-layout {
-            display: flex;
-            gap: 48px;
-            padding: 32px 40px;
-            align-items: flex-start;
-            max-width: 1600px;
-        }
-
-        .sidebar-tabs {
-            width: 200px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            position: sticky;
-            top: 24px;
-        }
-
-        .tab-btn {
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: none;
-            background: transparent;
-            color: var(--md-on-surface-variant, #666);
-            font-weight: 500;
-            font-size: 0.95rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.2s ease;
-            text-align: left;
-        }
-
-        .tab-btn:hover {
-            background: var(--md-surface-variant, #eaeaea);
-        }
-
-        .tab-btn.active {
-            background: var(--md-primary-container, #eaddff);
-            color: var(--md-on-primary-container, #21005d);
-            font-weight: 600;
-        }
-
-        /* Used grid to position elements like the UI mockup */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1.3fr 1fr;
-            gap: 24px;
-            width: 100%;
-            margin-bottom: 40px;
-        }
-
-        .b-card {
-            background: var(--md-surface, #fff);
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-            display: flex;
-            flex-direction: column;
-        }
-
-        [data-theme="dark"] .b-card {
-            background: #1C1C24;
-            /* Referencing deep dark theme of the design */
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .card-ai {
-            background: linear-gradient(135deg, var(--md-primary-container), var(--md-primary));
-            color: var(--md-on-primary-container);
-        }
-
-        [data-theme="dark"] .card-ai {
-            background: linear-gradient(135deg, #1A2735, #14353E);
-            color: #fff;
-        }
-
-        .card-balance {
-            justify-content: center;
-        }
-
-        .tx-scroll-area {
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
         /* Specific table fixes for the tighter card layout */
         .dashboard-layout .tx-table th,
         .dashboard-layout .tx-table td {
@@ -158,7 +70,7 @@
     </style>
 
     <div class="dashboard-layout">
-        <!-- Сегментированный контроль (Tab Bar) слева под хедером на будущее -->
+        <!-- Сегментированный контроль (Tab Bar) слева под хедером -->
         <aside class="sidebar-tabs">
             <div
                 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--md-on-surface-variant); margin-bottom: 8px; margin-left: 16px;">
@@ -167,9 +79,6 @@
             <a href="{% url 'dashboard' %}" class="tab-btn" style="text-decoration: none;">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📊</span> Дашборд
             </a>
-            <!-- <button class="tab-btn">
-            <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📁</span> Проекты
-        </button> -->
             <a href="{% url 'transactions' %}" class="tab-btn active" style="text-decoration: none;">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📈</span> Транзакции
             </a>
@@ -178,16 +87,15 @@
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">🤖</span> AI Помощник
             </a>
 
-
             <div style="height: 16px;"></div>
 
-            <!-- Кнопка добавления для будущего -->
-            <button class="tab-btn"
-                style="border: 1px dashed var(--md-outline); opacity: 0.7; justify-content: center;">
-                <span style="font-size: 1.2rem; margin-right: 4px;">+</span> Добавить
-            </button>
+            <!-- Кнопка добавления чека -->
+            <a href="{% url 'upload' %}" class="tab-btn"
+                style="border: 1px dashed var(--md-outline); opacity: 0.85; justify-content: center; text-decoration: none;">
+                <span style="font-size: 1.2rem; margin-right: 4px;">+</span> Добавить чек
+            </a>
 
-            <!-- Заглушка для хелпа (как на макете в левом нижнем углу меню) -->
+            <!-- Заглушка для хелпа -->
             <div
                 style="margin-top: 32px; padding: 16px; border-radius: 16px; background: var(--md-surface-container); font-size: 0.85rem; text-align: center;">
                 <div style="font-size: 1.5rem; margin-bottom: 8px; color: var(--md-primary);">ℹ️</div>
@@ -198,7 +106,8 @@
             </div>
         </aside>
 
-        <main class="main-content" style="flex: 1; padding: 0; max-width: none; margin: 0;">
+        <main class="main-content" style="flex: 1; padding: 0; max-width: none; margin: 0; width: 100%;">
+
             <div class="page-title" style="margin-bottom: 24px; margin-top: 0;">
                 Транзакции
                 <small>История ваших доходов и расходов</small>
@@ -221,18 +130,22 @@
                                 {% endfor %}
                             </select>
 
-                            <div class="month-controls"
-                                style="background: var(--md-surface-variant); padding: 4px; border-radius: 20px; display: flex; align-items: center;">
+                            <div class="month-controls calendar-pill">
                                 <a href="?month={{ prev_month }}&year={{ prev_year }}&category={{ current_category }}"
                                     class="btn-icon"
-                                    style="width: 28px; height: 28px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">◀</a>
-                                <div class="month-label" id="month-label"
-                                    style="font-size: 0.95rem; padding: 0 12px; font-weight: 500;">{{ month_display }}
-                                </div>
+                                    style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
+                                    title="Предыдущий месяц">◀</a>
+                                <button type="button" class="month-picker-trigger" onclick="openCalendarPicker()" title="Нажмите для быстрого выбора даты">
+                                    <span>📅</span>
+                                    <span class="month-label-text" id="month-label">{{ month_display }}</span>
+                                    <span class="cal-arrow">▾</span>
+                                </button>
                                 <a href="?month={{ next_month }}&year={{ next_year }}&category={{ current_category }}"
                                     class="btn-icon"
-                                    style="width: 28px; height: 28px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">▶</a>
+                                    style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
+                                    title="Следующий месяц">▶</a>
                             </div>
+
                         </div>
 
                         <div style="display: flex; gap: 8px;">
@@ -352,6 +265,45 @@
             </div>
         </div>
     </div>
+
+    <!-- ============================================================
+    CALENDAR PICKER MODAL
+    ============================================================ -->
+    <div class="modal-overlay" id="calendarPickerModal" onclick="closeCalendarPicker(event)">
+        <div class="calendar-modal-container" onclick="event.stopPropagation()">
+            <div class="calendar-modal-header">
+                <button type="button" class="btn-icon" onclick="changePickerYear(-1)" title="Предыдущий год" style="width: 32px; height: 32px; border-radius: 50%;">◀</button>
+                <div class="calendar-modal-year">
+                    <span>📅</span>
+                    <span id="pickerYearDisplay">{{ current_year }}</span>
+                </div>
+                <button type="button" class="btn-icon" onclick="changePickerYear(1)" title="Следующий год" style="width: 32px; height: 32px; border-radius: 50%;">▶</button>
+                <button type="button" class="modal-close" onclick="closeCalendarPicker()">&times;</button>
+            </div>
+
+            <div class="calendar-months-grid" id="pickerMonthsGrid">
+                {% for m_num, m_name in all_months %}
+                <button type="button"
+                    class="calendar-month-item {% if m_num == current_month %}active{% endif %}"
+                    data-month="{{ m_num }}"
+                    onclick="selectPickerMonth({{ m_num }})">
+                    {{ m_name }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <div class="calendar-modal-footer">
+                <button type="button" class="btn-today" onclick="selectTodayMonth()">
+                    ⭐ Текущий месяц
+                </button>
+                <label class="btn-native-picker" title="Открыть системный календарь">
+                    📱 Календарь
+                    <input type="month" value="{{ month_input_val }}" onchange="handleNativeMonthSelect(this)" style="position: absolute; opacity: 0; width: 0; height: 0;">
+                </label>
+            </div>
+        </div>
+    </div>
+
 
     <!-- ============================================================
     JAVASCRIPT
@@ -644,23 +596,61 @@
         }) ();
         {% endif %}
 
-        (function translateMonth() {
-            const monthMap = {
-                'January': 'Январь', 'February': 'Февраль', 'March': 'Март', 'April': 'Апрель',
-                'May': 'Май', 'June': 'Июнь', 'July': 'Июль', 'August': 'Август',
-                'September': 'Сентябрь', 'October': 'Октябрь', 'November': 'Ноябрь', 'December': 'Декабрь'
-            };
-            const label = document.getElementById('month-label');
-            if (label) {
-                let text = label.innerText;
-                for (let [eng, rus] of Object.entries(monthMap)) {
-                    if (text.includes(eng)) {
-                        label.innerText = text.replace(eng, rus);
-                        break;
-                    }
-                }
+        /* ── CALENDAR PICKER LOGIC ────────────────────────────────── */
+        let pickerYear = {{ current_year }};
+        const currentCategory = "{{ current_category|default:'all' }}";
+
+        function openCalendarPicker() {
+            const modal = document.getElementById('calendarPickerModal');
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeCalendarPicker(event) {
+            if (event && event.target !== document.getElementById('calendarPickerModal') && event.type !== 'click') {
+                return;
             }
-        })();
+            const modal = document.getElementById('calendarPickerModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function changePickerYear(delta) {
+            pickerYear += delta;
+            const yearEl = document.getElementById('pickerYearDisplay');
+            if (yearEl) yearEl.textContent = pickerYear;
+        }
+
+        function selectPickerMonth(monthNum) {
+            const params = new URLSearchParams(window.location.search);
+            params.set('month', monthNum);
+            params.set('year', pickerYear);
+            if (currentCategory && currentCategory !== 'all') {
+                params.set('category', currentCategory);
+            }
+            window.location.search = params.toString();
+        }
+
+        function selectTodayMonth() {
+            const today = new Date();
+            const params = new URLSearchParams(window.location.search);
+            params.set('month', today.getMonth() + 1);
+            params.set('year', today.getFullYear());
+            if (currentCategory && currentCategory !== 'all') {
+                params.set('category', currentCategory);
+            }
+            window.location.search = params.toString();
+        }
+
+        function handleNativeMonthSelect(input) {
+            if (!input.value) return;
+            const parts = input.value.split('-');
+            const params = new URLSearchParams(window.location.search);
+            params.set('year', parseInt(parts[0], 10));
+            params.set('month', parseInt(parts[1], 10));
+            if (currentCategory && currentCategory !== 'all') {
+                params.set('category', currentCategory);
+            }
+            window.location.search = params.toString();
+        }
 
         /* ── CATEGORY FILTER ───────────────────────────────────────── */
         const categoryFilter = document.getElementById('category-filter');
@@ -668,11 +658,32 @@
             categoryFilter.addEventListener('change', function () {
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.set('category', this.value);
-                // Keep month and year if they exist
                 window.location.search = urlParams.toString();
             });
         }
     </script>
+
+    <!-- ============================================================
+    MOBILE BOTTOM NAVIGATION
+    ============================================================ -->
+    <nav class="mobile-bottom-nav" aria-label="Мобильная навигация">
+        <a href="{% url 'dashboard' %}" class="mobile-nav-item">
+            <span class="mobile-nav-icon">📊</span>
+            <span class="mobile-nav-label">Дашборд</span>
+        </a>
+        <a href="{% url 'transactions' %}" class="mobile-nav-item active">
+            <span class="mobile-nav-icon">📈</span>
+            <span class="mobile-nav-label">Транзакции</span>
+        </a>
+        <a href="{% url 'upload' %}" class="mobile-nav-item mobile-nav-item--fab" title="Добавить чек">
+            <span class="mobile-nav-fab">+</span>
+            <span class="mobile-nav-label">Чек</span>
+        </a>
+        <a href="{% url 'chatbot' %}" class="mobile-nav-item">
+            <span class="mobile-nav-icon">🤖</span>
+            <span class="mobile-nav-label">AI Чат</span>
+        </a>
+    </nav>
 </body>
 
 </html>

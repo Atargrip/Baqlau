@@ -17,8 +17,10 @@ urlpatterns = [
     path('ai-advice/', get_ai_advice, name='ai_advice'),
     path('transactions/', all_transactions, name='transactions'),
     path('chatbot/', ai_chatbot_page, name='chatbot'),
+    path('ai-chatbot/', ai_chatbot_page, name='ai_chatbot'),
     path('api/chat/', api_chat_message, name='api_chat'),
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

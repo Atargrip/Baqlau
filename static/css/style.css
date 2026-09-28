@@ -1295,4 +1295,426 @@ body {
     background-color: var(--md-surface);
     color: var(--md-on-surface);
     padding: 8px;
-}
+}
+
+/* ===================================================
+   RESPONSIVE DASHBOARD LAYOUT & SIDEBAR
+=================================================== */
+.dashboard-layout {
+    display: flex;
+    gap: 40px;
+    padding: 32px 40px;
+    align-items: flex-start;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.sidebar-tabs {
+    width: 200px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: sticky;
+    top: 24px;
+}
+
+.tab-btn {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: var(--md-on-surface-variant, #666);
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+    text-align: left;
+    text-decoration: none;
+}
+
+.tab-btn:hover {
+    background: var(--md-surface-variant, #eaeaea);
+}
+
+.tab-btn.active {
+    background: var(--md-primary-container, #eaddff);
+    color: var(--md-on-primary-container, #21005d);
+    font-weight: 600;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 24px;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.b-card {
+    background: var(--md-surface, #fff);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--md-outline-variant);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+[data-theme="dark"] .b-card {
+    background: #1C1C24;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.card-ai {
+    background: linear-gradient(135deg, var(--md-primary-container), var(--md-primary));
+    color: var(--md-on-primary-container);
+    border: none;
+}
+
+[data-theme="dark"] .card-ai {
+    background: linear-gradient(135deg, #1A2735, #14353E);
+    color: #fff;
+}
+
+.card-balance {
+    justify-content: center;
+}
+
+.tx-scroll-area {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ===================================================
+   CALENDAR & MONTH PICKER COMPONENT
+=================================================== */
+.calendar-pill {
+    background: var(--md-surface-variant);
+    padding: 4px;
+    border-radius: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    border: 1px solid var(--md-outline-variant);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.month-picker-trigger {
+    background: transparent;
+    border: none;
+    color: var(--md-on-surface);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+}
+
+.month-picker-trigger:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .month-picker-trigger:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.month-picker-trigger .cal-arrow {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    transition: transform 0.2s;
+}
+
+/* Calendar Modal Dialog */
+.calendar-modal-container {
+    max-width: 420px;
+    width: 90%;
+    padding: 24px;
+    border-radius: 24px;
+    background: var(--md-surface);
+    border: 1px solid var(--md-outline-variant);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.calendar-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.calendar-modal-year {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--md-on-surface);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.calendar-months-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.calendar-month-item {
+    background: var(--md-surface-container);
+    border: 1px solid var(--md-outline-variant);
+    color: var(--md-on-surface);
+    border-radius: 14px;
+    padding: 12px 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.calendar-month-item:hover {
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    border-color: var(--md-primary);
+    transform: translateY(-2px);
+}
+
+.calendar-month-item.active {
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    border-color: var(--md-primary);
+    box-shadow: 0 4px 12px rgba(121, 101, 175, 0.35);
+}
+
+.calendar-modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    border-top: 1px solid var(--md-outline-variant);
+    padding-top: 16px;
+    flex-wrap: wrap;
+}
+
+.btn-today {
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-native-picker {
+    background: var(--md-surface-variant);
+    color: var(--md-on-surface-variant);
+    border-radius: 20px;
+    padding: 8px 16px;
+    border: 1px solid var(--md-outline-variant);
+    cursor: pointer;
+    font-size: 0.85rem;
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ===================================================
+   MOBILE BOTTOM NAVIGATION BAR
+=================================================== */
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--md-outline-variant);
+    z-index: 1000;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 12px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .mobile-bottom-nav {
+    background: rgba(28, 27, 31, 0.92);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--md-on-surface-variant);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    gap: 3px;
+    flex: 1;
+    max-width: 80px;
+}
+
+.mobile-nav-item .mobile-nav-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.mobile-nav-item.active {
+    color: var(--md-primary);
+    font-weight: 700;
+}
+
+.mobile-nav-item.active .mobile-nav-icon {
+    transform: scale(1.15);
+}
+
+.mobile-nav-item--fab {
+    position: relative;
+    top: -10px;
+    flex: 0 0 auto;
+}
+
+.mobile-nav-item--fab .mobile-nav-fab {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 300;
+    box-shadow: 0 4px 14px rgba(121, 101, 175, 0.45);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mobile-nav-item--fab:active .mobile-nav-fab {
+    transform: scale(0.92);
+}
+
+.mobile-nav-item--fab .mobile-nav-label {
+    margin-top: 2px;
+    font-size: 0.7rem;
+}
+
+/* ===================================================
+   RESPONSIVE BREAKPOINTS (TABLET & MOBILE)
+=================================================== */
+@media (max-width: 992px) {
+    .dashboard-layout {
+        flex-direction: column;
+        padding: 20px 20px 96px;
+        gap: 24px;
+    }
+
+    .sidebar-tabs {
+        display: none !important;
+    }
+
+    .mobile-bottom-nav {
+        display: flex;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .dashboard-grid > div[style*="grid-column: span 2"] {
+        grid-column: span 1 !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .navbar {
+        padding: 10px 14px;
+    }
+
+    .navbar__logo {
+        font-size: 1.15rem;
+    }
+
+    .streak-badge {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+
+    .dashboard-layout {
+        padding: 12px 12px 90px;
+        gap: 16px;
+    }
+
+    .b-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .card-ai {
+        padding: 20px !important;
+    }
+
+    .card-ai h2 {
+        font-size: 1.5rem !important;
+    }
+
+    .card-ai p {
+        max-width: 100% !important;
+        font-size: 0.9rem !important;
+    }
+
+    .card-balance div[style*="font-size: 2.8rem"] {
+        font-size: 2rem !important;
+    }
+
+    .tx-table th,
+    .tx-table td {
+        padding: 10px 8px !important;
+        font-size: 0.85rem;
+    }
+
+    .calendar-pill {
+        padding: 2px;
+    }
+
+    .month-picker-trigger {
+        font-size: 0.82rem;
+        padding: 4px 6px;
+    }
+
+    .auth-card,
+    .upload-card {
+        padding: 24px 16px !important;
+        margin: 12px;
+    }
+}
+

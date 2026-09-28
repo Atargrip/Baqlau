@@ -53,110 +53,6 @@
     MAIN CONTENT
     ============================================================ -->
     <style>
-        /* Styling to match the Aura dashboard reference */
-        .dashboard-layout {
-            display: flex;
-            gap: 48px;
-            padding: 32px 40px;
-            align-items: flex-start;
-            max-width: 1600px;
-        }
-
-        .sidebar-tabs {
-            width: 200px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            position: sticky;
-            top: 24px;
-        }
-
-        .tab-btn {
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: none;
-            background: transparent;
-            color: var(--md-on-surface-variant, #666);
-            font-weight: 500;
-            font-size: 0.95rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.2s ease;
-            text-align: left;
-        }
-
-        .tab-btn:hover {
-            background: var(--md-surface-variant, #eaeaea);
-        }
-
-        .tab-btn.active {
-            background: var(--md-primary-container, #eaddff);
-            color: var(--md-on-primary-container, #21005d);
-            font-weight: 600;
-        }
-
-        /* Used grid to position elements like the UI mockup */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1.3fr 1fr;
-            gap: 24px;
-            width: 100%;
-            margin-bottom: 40px;
-        }
-
-        .b-card {
-            background: var(--md-surface, #fff);
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-            display: flex;
-            flex-direction: column;
-        }
-
-        [data-theme="dark"] .b-card {
-            background: #1C1C24;
-            /* Referencing deep dark theme of the design */
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .card-ai {
-            background: linear-gradient(135deg, var(--md-primary-container), var(--md-primary));
-            color: var(--md-on-primary-container);
-        }
-
-        [data-theme="dark"] .card-ai {
-            background: linear-gradient(135deg, #1A2735, #14353E);
-            color: #fff;
-        }
-
-        .card-balance {
-            justify-content: center;
-        }
-
-        .tx-scroll-area {
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        /* Specific table fixes for the tighter card layout */
-        .dashboard-layout .tx-table th,
-        .dashboard-layout .tx-table td {
-            padding: 12px 16px;
-        }
-
-        .dashboard-layout .tx-table th:first-child,
-        .dashboard-layout .tx-table td:first-child {
-            padding-left: 24px;
-        }
-
-        .dashboard-layout .tx-table th:last-child,
-        .dashboard-layout .tx-table td:last-child {
-            padding-right: 24px;
-        }
-
         /* ── CHAT ANIMATIONS ─────────────────────────────────────── */
         @keyframes messageAppear {
             from {
@@ -207,7 +103,7 @@
     </style>
 
     <div class="dashboard-layout">
-        <!-- Сегментированный контроль (Tab Bar) слева под хедером на будущее -->
+        <!-- Сегментированный контроль (Tab Bar) слева под хедером -->
         <aside class="sidebar-tabs">
             <div
                 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--md-on-surface-variant); margin-bottom: 8px; margin-left: 16px;">
@@ -216,9 +112,6 @@
             <a href="{% url 'dashboard' %}" class="tab-btn" style="text-decoration: none;">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📊</span> Дашборд
             </a>
-            <!-- <button class="tab-btn">
-                <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📁</span> Проекты
-            </button> -->
             <a href="{% url 'transactions' %}" class="tab-btn" style="text-decoration: none;">
                 <span style="font-size: 1.1rem; width: 24px; display: inline-block;">📈</span> Транзакции
             </a>
@@ -228,13 +121,13 @@
 
             <div style="height: 16px;"></div>
 
-            <!-- Кнопка добавления для будущего -->
-            <button class="tab-btn"
-                style="border: 1px dashed var(--md-outline); opacity: 0.7; justify-content: center;">
-                <span style="font-size: 1.2rem; margin-right: 4px;">+</span> Добавить
-            </button>
+            <!-- Кнопка добавления чека -->
+            <a href="{% url 'upload' %}" class="tab-btn"
+                style="border: 1px dashed var(--md-outline); opacity: 0.85; justify-content: center; text-decoration: none;">
+                <span style="font-size: 1.2rem; margin-right: 4px;">+</span> Добавить чек
+            </a>
 
-            <!-- Заглушка для хелпа (как на макете в левом нижнем углу меню) -->
+            <!-- Заглушка для хелпа -->
             <div
                 style="margin-top: 32px; padding: 16px; border-radius: 16px; background: var(--md-surface-container); font-size: 0.85rem; text-align: center;">
                 <div style="font-size: 1.5rem; margin-bottom: 8px; color: var(--md-primary);">ℹ️</div>
@@ -245,7 +138,7 @@
             </div>
         </aside>
 
-        <main class="main-content" style="flex: 1; padding: 0; max-width: none; margin: 0;">
+        <main class="main-content" style="flex: 1; padding: 0; max-width: none; margin: 0; width: 100%;">
             <div class="page-title" style="margin-bottom: 24px; margin-top: 0;">
                 ИИ Помощник
                 <small>Анализ ваших трат в реальном времени</small>
@@ -255,37 +148,42 @@
             <div class="dashboard-grid">
 
                 <div class="b-card"
-                    style="padding: 0; overflow: hidden; display: flex; flex-direction: column; grid-column: span 2; height: 75vh;">
+                    style="padding: 0; overflow: hidden; display: flex; flex-direction: column; grid-column: span 2; min-height: 520px; height: calc(100vh - 220px);">
                     <!-- Header -->
                     <div
-                        style="padding: 16px 24px; border-bottom: 1px solid var(--md-outline-variant); display: flex; justify-content: space-between; align-items: center; background: var(--md-surface-variant);">
+                        style="padding: 14px 20px; border-bottom: 1px solid var(--md-outline-variant); display: flex; justify-content: space-between; align-items: center; background: var(--md-surface-variant); flex-wrap: wrap; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div
-                                style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--md-primary) 0%, #a855f7 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">
+                                style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--md-primary) 0%, #a855f7 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">
                                 ✨</div>
                             <div>
-                                <div style="font-weight: 600; font-size: 1.1rem;">Baqlau AI</div>
-                                <div style="font-size: 0.8rem; opacity: 0.7;">Персональный финансовый советник</div>
+                                <div style="font-weight: 600; font-size: 1.05rem;">Baqlau AI</div>
+                                <div style="font-size: 0.78rem; opacity: 0.7;">Персональный финансовый советник</div>
                             </div>
                         </div>
 
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div class="month-controls"
-                                style="background: var(--md-surface); padding: 4px; border-radius: 20px; display: flex; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="month-controls calendar-pill">
                                 <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn-icon"
-                                    style="width: 28px; height: 28px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">◀</a>
-                                <div class="month-label" id="month-label"
-                                    style="font-size: 0.95rem; padding: 0 12px; font-weight: 500;">{{ month_display }}
-                                </div>
+                                    style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
+                                    title="Предыдущий месяц">◀</a>
+                                <button type="button" class="month-picker-trigger" onclick="openCalendarPicker()" title="Нажмите для быстрого выбора даты">
+                                    <span>📅</span>
+                                    <span class="month-label-text" id="month-label">{{ month_display }}</span>
+                                    <span class="cal-arrow">▾</span>
+                                </button>
                                 <a href="?month={{ next_month }}&year={{ next_year }}" class="btn-icon"
-                                    style="width: 28px; height: 28px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">▶</a>
+                                    style="width: 28px; height: 28px; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center;"
+                                    title="Следующий месяц">▶</a>
                             </div>
                             <button onclick="clearChat()" class="btn-tonal"
-                                style="padding: 6px 12px; font-size: 0.8rem; background: var(--md-surface-variant); border-radius: 20px; border: 1px solid var(--md-outline-variant);">
-                                🗑️ Очистить
+                                style="padding: 6px 12px; font-size: 0.8rem; background: var(--md-surface); border-radius: 20px; border: 1px solid var(--md-outline-variant);"
+                                title="Очистить сообщения">
+                                🗑️
                             </button>
                         </div>
                     </div>
+
 
                     <!-- Chat Area -->
                     <div id="chat-messages"
@@ -317,21 +215,48 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </main>
+    </div>
 
-                <!-- ============================================================
-    MODAL OVERLAY
+    <!-- ============================================================
+    CALENDAR PICKER MODAL
     ============================================================ -->
-                <div class="modal-overlay" id="receiptModal" onclick="closeReceiptModal(event)">
-                    <div class="modal-container" onclick="event.stopPropagation()">
-                        <div class="modal-header">
-                            <div class="modal-title">Детали чека</div>
-                            <button type="button" class="modal-close" onclick="closeReceiptModal()">&times;</button>
-                        </div>
-                        <div class="modal-body" id="modal-body-content">
-                            <!-- Content injected via JS -->
-                        </div>
-                    </div>
+    <div class="modal-overlay" id="calendarPickerModal" onclick="closeCalendarPicker(event)">
+        <div class="calendar-modal-container" onclick="event.stopPropagation()">
+            <div class="calendar-modal-header">
+                <button type="button" class="btn-icon" onclick="changePickerYear(-1)" title="Предыдущий год" style="width: 32px; height: 32px; border-radius: 50%;">◀</button>
+                <div class="calendar-modal-year">
+                    <span>📅</span>
+                    <span id="pickerYearDisplay">{{ current_year }}</span>
                 </div>
+                <button type="button" class="btn-icon" onclick="changePickerYear(1)" title="Следующий год" style="width: 32px; height: 32px; border-radius: 50%;">▶</button>
+                <button type="button" class="modal-close" onclick="closeCalendarPicker()">&times;</button>
+            </div>
+
+            <div class="calendar-months-grid" id="pickerMonthsGrid">
+                {% for m_num, m_name in all_months %}
+                <button type="button"
+                    class="calendar-month-item {% if m_num == current_month %}active{% endif %}"
+                    data-month="{{ m_num }}"
+                    onclick="selectPickerMonth({{ m_num }})">
+                    {{ m_name }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <div class="calendar-modal-footer">
+                <button type="button" class="btn-today" onclick="selectTodayMonth()">
+                    ⭐ Текущий месяц
+                </button>
+                <label class="btn-native-picker" title="Открыть системный календарь">
+                    📱 Календарь
+                    <input type="month" value="{{ month_input_val }}" onchange="handleNativeMonthSelect(this)" style="position: absolute; opacity: 0; width: 0; height: 0;">
+                </label>
+            </div>
+        </div>
+    </div>
+
 
                 <!-- ============================================================
     JAVASCRIPT
@@ -363,284 +288,53 @@
                         applyTheme(current === 'dark' ? 'light' : 'dark');
                     });
 
-                    /* ── CHECKBOX LOGIC ───────────────────────────────────────── */
-                    const selectAll = document.getElementById('select-all');
-                    const checkboxes = document.querySelectorAll('.transaction-checkbox');
-                    const exportBtn = document.getElementById('export-btn');
+                    /* ── CALENDAR PICKER LOGIC ────────────────────────────────── */
+                    let pickerYear = {{ current_year }};
 
-                    function updateExportButton() {
-                        const checkedCount = document.querySelectorAll('.transaction-checkbox:checked').length;
-                        exportBtn.disabled = checkedCount === 0;
-                        if (checkedCount > 0) {
-                            exportBtn.textContent = `📥 Экспорт (${checkedCount})`;
-                            exportBtn.classList.add('active');
-                        } else {
-                            exportBtn.textContent = `📥 Экспорт выбранных`;
-                            exportBtn.classList.remove('active');
-                        }
+                    function openCalendarPicker() {
+                        const modal = document.getElementById('calendarPickerModal');
+                        if (modal) modal.classList.add('active');
                     }
 
-                    function updateRowHighlight(checkbox) {
-                        const row = checkbox.closest('tr');
-                        if (row) row.classList.toggle('row-selected', checkbox.checked);
-                    }
-
-                    if (selectAll) {
-                        selectAll.addEventListener('change', function () {
-                            checkboxes.forEach(cb => {
-                                cb.checked = selectAll.checked;
-                                updateRowHighlight(cb);
-                            });
-                            updateExportButton();
-                        });
-                    }
-
-                    checkboxes.forEach(cb => {
-                        cb.addEventListener('change', function () {
-                            updateRowHighlight(this);
-                            updateExportButton();
-                            const allChecked = document.querySelectorAll('.transaction-checkbox:checked').length === checkboxes.length;
-                            const anyChecked = document.querySelectorAll('.transaction-checkbox:checked').length > 0;
-                            if (selectAll) {
-                                selectAll.checked = allChecked;
-                                selectAll.indeterminate = anyChecked && !allChecked;
-                            }
-                        });
-                    });
-
-                    /* ── FETCH AI ADVICE ───────────────────────────────────────── */
-                    async function fetchAiAdvice() {
-                        const btn = document.getElementById('btn-ai-advice');
-                        const textEl = document.getElementById('ai-advice-text');
-
-                        btn.disabled = true;
-                        btn.textContent = 'Анализируем...';
-                        textEl.innerHTML = '<span style="opacity: 0.7;">Отправляем данные в Gemini API, подождите...</span>';
-
-                        try {
-                            const response = await fetch('{% url "ai_advice" %}');
-                            const data = await response.json();
-
-                            if (data.advice) {
-                                textEl.textContent = data.advice;
-                            } else {
-                                textEl.textContent = 'Не удалось получить совет.';
-                            }
-                        } catch (err) {
-                            textEl.textContent = 'Ошибка соединения с сервером.';
-                        } finally {
-                            btn.disabled = false;
-                            btn.textContent = 'Анализ';
-                        }
-                    }
-
-                    /* ── RECEIPT DETAILS & EDIT ITEM ───────────────────────────── */
-                    function openReceiptModal(btn) {
-                        const modal = document.getElementById('receiptModal');
-                        const content = document.getElementById('modal-body-content');
-
-                        const rawData = btn.getAttribute('data-items');
-                        const sourceUrl = btn.getAttribute('data-source-url');
-
-                        let html = `
-                <div style="margin-bottom: 20px;">
-                    ${sourceUrl ? `
-                    <div style="margin-bottom: 16px;">
-                        <a href="${sourceUrl}" target="_blank" class="btn-tonal btn-tonal--secondary">Скачать изображение чека</a>
-                    </div>
-                    ` : ''}
-                    <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 12px; color: var(--md-on-surface);">Товары в чеке:</div>
-            `;
-
-                        if (rawData) {
-                            const items = rawData.split('||').filter(x => x.trim().length > 0);
-
-                            html += `
-                    <table class="tx-table" style="background: var(--md-surface); border-radius: 8px; overflow: hidden; border: 1px solid var(--md-outline-variant);">
-                        <thead>
-                            <tr>
-                                <th>Название</th>
-                                <th>Цена</th>
-                                <th>Кол-во</th>
-                                <th>Действие</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                            items.forEach(itemStr => {
-                                const parts = itemStr.split('|');
-                                if (parts.length < 4) return;
-
-                                const [id, name, price, qty] = parts;
-                                html += `
-                        <tr>
-                            <td><input type="text" id="itemName-${id}" value="${name.replace(/"/g, '&quot;')}" class="md-input" style="padding: 8px; width: 100%; min-width: 300px;"></td>
-                            <td><input type="number" id="itemPrice-${id}" value="${price}" class="md-input" style="padding: 8px; width: 100px;" step="0.01"></td>
-                            <td><input type="number" id="itemQty-${id}" value="${qty}" class="md-input" style="padding: 8px; width: 70px;" step="0.1"></td>
-                            <td>
-                                <button type="button" onclick="saveReceiptItem(${id}, this)" class="btn-tonal btn-tonal--secondary" style="padding: 6px 14px; font-size: 0.85rem;">Сохранить</button>
-                            </td>
-                        </tr>
-                    `;
-                            });
-
-                            html += `
-                        </tbody>
-                    </table>
-                `;
-                        } else {
-                            html += `<p style="color: var(--md-outline-variant);">Товары не найдены.</p>`;
-                        }
-
-                        html += `</div>`;
-                        content.innerHTML = html;
-                        modal.classList.add('active');
-                    }
-
-                    function closeReceiptModal(event) {
-                        if (event && event.target !== document.getElementById('receiptModal') && event.type !== 'click') {
+                    function closeCalendarPicker(event) {
+                        if (event && event.target !== document.getElementById('calendarPickerModal') && event.type !== 'click') {
                             return;
                         }
-                        const modal = document.getElementById('receiptModal');
-                        modal.classList.remove('active');
+                        const modal = document.getElementById('calendarPickerModal');
+                        if (modal) modal.classList.remove('active');
                     }
 
-                    async function saveReceiptItem(itemId, btnElement) {
-                        const name = document.getElementById(`itemName-${itemId}`).value;
-                        const price = document.getElementById(`itemPrice-${itemId}`).value;
-                        const quantity = document.getElementById(`itemQty-${itemId}`).value;
-
-                        const originalText = btnElement.textContent;
-                        btnElement.textContent = '...';
-                        btnElement.disabled = true;
-
-                        try {
-                            const response = await fetch(`/edit-item/${itemId}/`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRFToken': '{{ csrf_token }}'
-                                },
-                                body: JSON.stringify({
-                                    name: name,
-                                    price: price,
-                                    quantity: quantity
-                                })
-                            });
-
-                            const data = await response.json();
-                            if (data.status === 'success') {
-                                btnElement.textContent = '✓';
-                                setTimeout(() => { btnElement.textContent = originalText; btnElement.disabled = false; }, 1500);
-                            } else {
-                                alert('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
-                                btnElement.textContent = originalText;
-                                btnElement.disabled = false;
-                            }
-                        } catch (err) {
-                            alert('Ошибка соединения при сохранении');
-                            btnElement.textContent = originalText;
-                            btnElement.disabled = false;
-                        }
+                    function changePickerYear(delta) {
+                        pickerYear += delta;
+                        const yearEl = document.getElementById('pickerYearDisplay');
+                        if (yearEl) yearEl.textContent = pickerYear;
                     }
 
-                    /* ── STREAK COUNTER ──────────────────── */
-                    (function initStreak() {
-                        const today = new Date().toDateString();
-                        const lastVisit = localStorage.getItem('baqlau-last-visit');
-                        let streak = parseInt(localStorage.getItem('baqlau-streak') || '0', 10);
-                        if (lastVisit !== today) {
-                            const yesterday = new Date();
-                            yesterday.setDate(yesterday.getDate() - 1);
-                            if (lastVisit === yesterday.toDateString()) {
-                                streak += 1;
-                            } else {
-                                streak = 1;
-                            }
-                            localStorage.setItem('baqlau-last-visit', today);
-                            localStorage.setItem('baqlau-streak', streak);
-                        }
-                        const el = document.getElementById('streak-count');
-                        if (el) el.textContent = streak;
-                    })();
-
-                    /* ── CATEGORY CHART (Chart.js) ───────────────────────────── */
-                    {% if chart_values %}
-                    (function initChart() {
-                        const ctx = document.getElementById('categoryChart').getContext('2d');
-                        const palette = ['#6750A4', '#5E7B6A', '#B3261E', '#7D5260', '#9A82DB', '#006A6A', '#938F99'];
-
-                        new Chart(ctx, {
-                            type: 'doughnut',
-                            data: {
-                                labels: {{ chart_labels| safe }},
-                    datasets: [{
-                        data: {{ chart_values| safe }},
-                        backgroundColor: palette,
-                        borderWidth: 0,
-                        hoverOffset: 15,
-                        borderRadius: 8,
-                        spacing: 8
-                    }]
-                },
-                    options: {
-                        layout: {
-                            padding: 24
-                        },
-                        responsive: true,
-                            maintainAspectRatio: false,
-                                cutout: '84%',
-                                    plugins: {
-                            legend: {
-                                position: 'right',
-                                    labels: {
-                                    padding: 20,
-                                        usePointStyle: true,
-                                            font: { family: "'Inter', sans-serif", size: 12, weight: '600' },
-                                    color: getComputedStyle(document.documentElement).getPropertyValue('--md-on-surface')
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(28, 27, 31, 0.95)',
-                                    padding: 12,
-                                        cornerRadius: 12,
-                                            callbacks: {
-                                    label: function(context) {
-                                        let val = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT' }).format(context.parsed);
-                                        return ` ${context.label}: ${val}`;
-                                    }
-                                }
-                            }
-                        },
-                        animation: {
-                            animateScale: true,
-                                animateRotate: true,
-                                    duration: 1000,
-                                        easing: 'easeOutQuad'
-                        }
+                    function selectPickerMonth(monthNum) {
+                        const params = new URLSearchParams(window.location.search);
+                        params.set('month', monthNum);
+                        params.set('year', pickerYear);
+                        window.location.search = params.toString();
                     }
-            });
-        }) ();
-                    {% endif %}
 
-                    (function translateMonth() {
-                        const monthMap = {
-                            'January': 'Январь', 'February': 'Февраль', 'March': 'Март', 'April': 'Апрель',
-                            'May': 'Май', 'June': 'Июнь', 'July': 'Июль', 'August': 'Август',
-                            'September': 'Сентябрь', 'October': 'Октябрь', 'November': 'Ноябрь', 'December': 'Декабрь'
-                        };
-                        const label = document.getElementById('month-label');
-                        if (label) {
-                            let text = label.innerText;
-                            for (let [eng, rus] of Object.entries(monthMap)) {
-                                if (text.includes(eng)) {
-                                    label.innerText = text.replace(eng, rus);
-                                    break;
-                                }
-                            }
-                        }
-                    })();
+                    function selectTodayMonth() {
+                        const today = new Date();
+                        const params = new URLSearchParams(window.location.search);
+                        params.set('month', today.getMonth() + 1);
+                        params.set('year', today.getFullYear());
+                        window.location.search = params.toString();
+                    }
+
+                    function handleNativeMonthSelect(input) {
+                        if (!input.value) return;
+                        const parts = input.value.split('-');
+                        const params = new URLSearchParams(window.location.search);
+                        params.set('year', parseInt(parts[0], 10));
+                        params.set('month', parseInt(parts[1], 10));
+                        window.location.search = params.toString();
+                    }
+
+
                 </script>
 
                 <script>
@@ -788,6 +482,27 @@
                     }
                 </script>
 
+    <!-- ============================================================
+    MOBILE BOTTOM NAVIGATION
+    ============================================================ -->
+    <nav class="mobile-bottom-nav" aria-label="Мобильная навигация">
+        <a href="{% url 'dashboard' %}" class="mobile-nav-item">
+            <span class="mobile-nav-icon">📊</span>
+            <span class="mobile-nav-label">Дашборд</span>
+        </a>
+        <a href="{% url 'transactions' %}" class="mobile-nav-item">
+            <span class="mobile-nav-icon">📈</span>
+            <span class="mobile-nav-label">Транзакции</span>
+        </a>
+        <a href="{% url 'upload' %}" class="mobile-nav-item mobile-nav-item--fab" title="Добавить чек">
+            <span class="mobile-nav-fab">+</span>
+            <span class="mobile-nav-label">Чек</span>
+        </a>
+        <a href="{% url 'chatbot' %}" class="mobile-nav-item active">
+            <span class="mobile-nav-icon">🤖</span>
+            <span class="mobile-nav-label">AI Чат</span>
+        </a>
+    </nav>
 </body>
 
-</html>
+</html>
